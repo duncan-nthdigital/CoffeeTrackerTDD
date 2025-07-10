@@ -61,6 +61,5 @@ public class CoffeeShop
     public CoffeeShop()
     {
         CreatedAt = DateTime.UtcNow;
-        IsActive = true;
     }
 }

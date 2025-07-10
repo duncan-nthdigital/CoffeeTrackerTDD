@@ -62,6 +62,21 @@ public enum CoffeeType
 public static class CoffeeTypeExtensions
 {
     /// <summary>
+    /// Base caffeine content constants in milligrams for performance and maintainability
+    /// </summary>
+    private static class BaseCaffeineContent
+    {
+        public const int Espresso = 90;
+        public const int Americano = 120;
+        public const int Latte = 80;
+        public const int Cappuccino = 80;
+        public const int Mocha = 90;
+        public const int Macchiato = 120;
+        public const int FlatWhite = 130;
+        public const int BlackCoffee = 95;
+    }
+
+    /// <summary>
     /// Gets the base caffeine content in milligrams for the coffee type
     /// </summary>
     /// <param name="coffeeType">The coffee type</param>
@@ -70,14 +85,14 @@ public static class CoffeeTypeExtensions
     {
         return coffeeType switch
         {
-            CoffeeType.Espresso => 90,
-            CoffeeType.Americano => 120,
-            CoffeeType.Latte => 80,
-            CoffeeType.Cappuccino => 80,
-            CoffeeType.Mocha => 90,
-            CoffeeType.Macchiato => 120,
-            CoffeeType.FlatWhite => 130,
-            CoffeeType.BlackCoffee => 95,
+            CoffeeType.Espresso => BaseCaffeineContent.Espresso,
+            CoffeeType.Americano => BaseCaffeineContent.Americano,
+            CoffeeType.Latte => BaseCaffeineContent.Latte,
+            CoffeeType.Cappuccino => BaseCaffeineContent.Cappuccino,
+            CoffeeType.Mocha => BaseCaffeineContent.Mocha,
+            CoffeeType.Macchiato => BaseCaffeineContent.Macchiato,
+            CoffeeType.FlatWhite => BaseCaffeineContent.FlatWhite,
+            CoffeeType.BlackCoffee => BaseCaffeineContent.BlackCoffee,
             _ => throw new ArgumentOutOfRangeException(nameof(coffeeType), coffeeType, "Unknown coffee type")
         };
     }
