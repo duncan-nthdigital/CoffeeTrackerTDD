@@ -94,6 +94,13 @@ builder.Services.AddOpenApi(options =>
 // Add controllers
 builder.Services.AddControllers();
 
+// TODO: Add FluentValidation
+// builder.Services.AddFluentValidationAutoValidation();
+// builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// TODO: Add AutoMapper
+// builder.Services.AddAutoMapper(typeof(Program));
+
 // Register application services
 builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
 

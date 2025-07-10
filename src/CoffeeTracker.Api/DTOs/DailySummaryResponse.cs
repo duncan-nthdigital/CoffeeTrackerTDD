@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+
 namespace CoffeeTracker.Api.DTOs;
 
 /// <summary>
@@ -8,35 +11,39 @@ public class DailySummaryResponse
     /// <summary>
     /// The date for this summary
     /// </summary>
-    /// <example>2024-01-15</example>
-    public DateOnly Date { get; set; }
+    /// <example>2025-07-10</example>
+    [JsonPropertyName("date")]
+    [Description("The date for this summary")]
+    public DateTime Date { get; set; }
 
     /// <summary>
     /// Total number of coffee entries for the day
     /// </summary>
     /// <example>5</example>
+    [JsonPropertyName("totalEntries")]
+    [Description("Total number of coffee entries for the day")]
     public int TotalEntries { get; set; }
 
     /// <summary>
     /// Total caffeine consumed in milligrams
     /// </summary>
     /// <example>450</example>
-    public int TotalCaffeineMilligrams { get; set; }
+    [JsonPropertyName("totalCaffeine")]
+    [Description("Total caffeine consumed in milligrams")]
+    public int TotalCaffeine { get; set; }
 
     /// <summary>
     /// List of coffee entries for the day
     /// </summary>
-    public IEnumerable<CoffeeEntryResponse> Entries { get; set; } = new List<CoffeeEntryResponse>();
+    [JsonPropertyName("entries")]
+    [Description("List of coffee entries for the day")]
+    public List<CoffeeEntryResponse> Entries { get; set; } = new List<CoffeeEntryResponse>();
 
     /// <summary>
-    /// Whether the daily limit has been reached
+    /// Average caffeine per entry for the day
     /// </summary>
-    /// <example>false</example>
-    public bool HasReachedDailyLimit { get; set; }
-
-    /// <summary>
-    /// Whether the caffeine limit has been reached
-    /// </summary>
-    /// <example>false</example>
-    public bool HasReachedCaffeineLimit { get; set; }
+    /// <example>90.0</example>
+    [JsonPropertyName("averageCaffeinePerEntry")]
+    [Description("Average caffeine per entry for the day")]
+    public decimal AverageCaffeinePerEntry { get; set; }
 }
