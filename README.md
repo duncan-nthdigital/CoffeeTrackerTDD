@@ -1,6 +1,24 @@
-# Coffee Tracker TDD
+# Coffee Tracker TDD - AI-Powered Development
 
-A .NET Aspire application with Blazor frontend and Web API backend, demonstrating Test-Driven Development practices with Auth0 integration and SQLite database.
+A .NET Aspire application with Blazor frontend and Web API backend, demonstrating **Test-Driven Development (TDD) with AI collaboration**. This project showcases how GitHub Copilot and AI assistants can accelerate TDD practices while maintaining code quality and comprehensive testing.
+
+## 🤖 AI + TDD Approach
+
+This project is built using a **human-AI collaborative development workflow**:
+
+- **🔴 Red Phase**: AI helps write comprehensive failing tests based on requirements
+- **🟢 Green Phase**: AI assists in implementing minimal code to pass tests  
+- **🔄 Refactor Phase**: AI suggests improvements while maintaining test coverage
+- **📋 Issue-Driven**: Each feature has detailed GitHub issues with AI-ready prompts
+- **🎯 Prompt Engineering**: Optimized prompts for consistent, high-quality AI assistance
+
+### Why AI + TDD?
+
+- **Faster Test Creation**: AI generates comprehensive test suites quickly
+- **Better Coverage**: AI suggests edge cases and test scenarios humans might miss
+- **Consistent Quality**: AI follows established patterns and coding standards
+- **Rapid Iteration**: Quick feedback loops between tests and implementation
+- **Knowledge Transfer**: AI prompts serve as documentation and learning tools
 
 ## 🏗️ Architecture
 
