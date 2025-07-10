@@ -41,13 +41,21 @@ CoffeeTrackerTDD/
 
 ## 🚀 Features
 
+### Core Application Features
+- **Anonymous Coffee Tracking** - MVP approach for rapid user feedback
 - **Blazor Interactive Auto** render mode for optimal user experience
 - **Entity Framework Core** with SQLite database
-- **Auth0 authentication** for secure user management
+- **Auth0 authentication** for secure user management (Phase 2)
 - **JWT Bearer authentication** for API security
 - **CORS configuration** for cross-origin requests
-- **Comprehensive testing** with xUnit, bUnit, and ASP.NET Core TestHost
 - **.NET Aspire orchestration** for local development
+
+### AI-Enhanced Development Features
+- **📝 GitHub Issues with AI Prompts** - Ready-to-use prompts for each development task
+- **🤖 Copilot-Optimized Code Structure** - Organized for maximum AI assistance
+- **📊 Epic-Based Development** - Clear progression from MVP to full features
+- **🧪 TDD-First Approach** - Tests written before implementation using AI
+- **📋 Acceptance Criteria** - Clear, AI-understandable requirements for each task
 
 ## 🛠️ Prerequisites
 
@@ -155,13 +163,47 @@ dotnet test test/CoffeeTracker.Web.Tests
 - **Web Tests**: Use `bUnit` for Blazor component testing
 - **In-Memory Database**: Entity Framework Core InMemory provider for testing
 
-## 📋 TDD Guidelines
+## 📋 AI-Powered TDD Workflow
 
-This project follows Test-Driven Development principles:
+This project demonstrates a comprehensive **AI-assisted Test-Driven Development** approach:
 
-1. **Red**: Write a failing test first
-2. **Green**: Write minimal code to make the test pass
-3. **Refactor**: Improve code while keeping tests green
+### 🎯 Development Process
+
+1. **📖 Epic Planning**: Features broken into AI-friendly GitHub issues
+2. **🤖 AI Prompt Execution**: Copy-paste prompts for consistent implementation  
+3. **🔴 Red Phase**: AI writes failing tests based on acceptance criteria
+4. **🟢 Green Phase**: AI implements minimal code to pass tests
+5. **🔄 Refactor Phase**: AI suggests improvements while keeping tests green
+6. **✅ Validation**: Ensure all acceptance criteria are met
+
+### 🛠️ AI Development Tools
+
+- **GitHub Copilot**: Primary AI pair programming assistant
+- **AI-Optimized Prompts**: Detailed prompts in each GitHub issue
+- **Context-Rich Issues**: Complete information for AI understanding
+- **Test-First Mentality**: All features start with comprehensive tests
+- **Progressive Enhancement**: Build from simple to complex features
+
+### 📊 Project Structure for AI
+
+```
+📁 architecture/
+├── 📄 Initial-PRD.md                    # Product requirements
+├── 📄 Development-Plan.md               # Epic overview and progress
+├── 📄 Epic-1-Domain-Models.md          # Detailed epic with AI prompts
+└── 📁 github-issues/                   # Individual GitHub issues
+    ├── 📄 Issue-001-Coffee-Entry-Domain-Model.md
+    ├── 📄 Issue-002-Coffee-Type-Size-Enums.md
+    └── 📄 [5 issues total with AI prompts]
+```
+
+### TDD Guidelines
+
+This project follows Test-Driven Development principles with AI enhancement:
+
+1. **Red**: Write a failing test first (AI assists with test generation)
+2. **Green**: Write minimal code to make the test pass (AI suggests implementation)
+3. **Refactor**: Improve code while keeping tests green (AI suggests optimizations)
 
 ### Key Testing Tools
 - **xUnit**: Unit testing framework
@@ -177,24 +219,67 @@ This project follows Test-Driven Development principles:
 - **CORS Policy**: Configured for cross-origin requests
 - **Authorization Attributes**: Ready for role-based access control
 
-## 📁 Development Workflow
+## 📁 AI-Enhanced Development Workflow
 
-1. **Write failing tests** for new features
-2. **Implement minimal code** to pass tests
-3. **Refactor** while maintaining green tests
-4. **Follow SOLID principles** and clean code practices
-5. **Use Aspire** for local development orchestration
+1. **📋 Epic-Driven Development**: Features organized as GitHub issues with AI prompts
+2. **🤖 AI-First Implementation**: Write failing tests and implementation using AI
+3. **🔄 Iterative Refinement**: Refactor with AI suggestions while maintaining tests
+4. **✅ Acceptance-Driven**: Clear criteria for AI understanding and validation
+5. **📊 Progress Tracking**: Visual progress through epic completion
+6. **🚀 Rapid Deployment**: Anonymous MVP approach for fast user feedback
 
-## 🎯 Next Steps
+## 🤝 Contributing with AI
 
-With the basic structure in place, you can now:
+When contributing to this project:
 
-1. **Add domain models** and corresponding tests
-2. **Implement business logic** following TDD practices
-3. **Create API endpoints** with proper authentication
-4. **Build Blazor components** with comprehensive testing
-5. **Extend the database schema** as needed
-6. **Add more sophisticated Auth0 features** (roles, permissions)
+1. **🧪 Follow TDD practices** with AI assistance
+2. **🤖 Use provided AI prompts** in GitHub issues
+3. **✅ Ensure all tests pass** before submission
+4. **📊 Maintain code coverage** (90%+ target)
+5. **📋 Follow established patterns** for AI consistency
+6. **📝 Update documentation** and acceptance criteria
+
+## 🔗 AI Development Resources
+
+- **📋 Development Plan**: `architecture/Development-Plan.md`
+- **🎯 Epic Files**: `architecture/Epic-*.md` (detailed AI prompts)
+- **🎫 GitHub Issues**: `architecture/github-issues/` (copy-paste ready)
+- **🤖 AI Prompts**: Embedded in each issue for immediate use
+- **📊 Progress Tracking**: Visual checkboxes in development plan
+
+---
+
+**🚀 Ready to build with AI + TDD!** Start with Epic 1, Issue #001 and let AI accelerate your development! 🤖☕
+
+## 🎯 Getting Started with AI + TDD
+
+### Quick Start (AI-Assisted Development)
+
+1. **📋 Review the Development Plan**: Check `architecture/Development-Plan.md`
+2. **🎫 Start with Issue #001**: Open `architecture/github-issues/Issue-001-Coffee-Entry-Domain-Model.md`
+3. **🤖 Copy the AI Prompt**: Use the detailed prompt with GitHub Copilot
+4. **🔴 Write Failing Tests**: Let AI help generate comprehensive tests
+5. **🟢 Implement Code**: AI assists with minimal implementation
+6. **✅ Validate**: Ensure all acceptance criteria are met
+
+### Next Steps for AI Development
+
+With the AI-ready structure in place, you can:
+
+1. **🎯 Follow Epic 1**: Start with domain models using AI prompts
+2. **📝 Use GitHub Issues**: Each issue has complete context for AI
+3. **🤖 Leverage AI Assistance**: Prompts optimized for Copilot
+4. **🧪 Maintain TDD**: AI helps write tests first, then implementation
+5. **📊 Track Progress**: Check off tasks as you complete them
+6. **🚀 Deploy MVP**: Anonymous user features ready for production in 2-3 weeks
+
+### 🤖 AI Development Workflow
+
+```
+📖 Read Issue → 🤖 Copy AI Prompt → 🔴 Write Tests → 🟢 Implement → ✅ Validate
+     ↓              ↓                ↓              ↓             ↓
+Epic File → GitHub Copilot → TDD Red Phase → TDD Green → Acceptance Criteria
+```
 
 ## 📚 Useful Commands
 
@@ -216,16 +301,25 @@ dotnet ef database update --project src/CoffeeTracker.Api
 dotnet clean && dotnet build
 ```
 
-## 🤝 Contributing
+## 🤝 Contributing with AI
 
 When contributing to this project:
 
-1. Follow TDD practices
-2. Ensure all tests pass
-3. Maintain code coverage
-4. Follow the established project structure
-5. Update documentation as needed
+1. **🧪 Follow TDD practices** with AI assistance
+2. **🤖 Use provided AI prompts** in GitHub issues
+3. **✅ Ensure all tests pass** before submission
+4. **📊 Maintain code coverage** (90%+ target)
+5. **📋 Follow established patterns** for AI consistency
+6. **📝 Update documentation** and acceptance criteria
+
+## 🔗 AI Development Resources
+
+- **📋 Development Plan**: `architecture/Development-Plan.md`
+- **🎯 Epic Files**: `architecture/Epic-*.md` (detailed AI prompts)
+- **🎫 GitHub Issues**: `architecture/github-issues/` (copy-paste ready)
+- **🤖 AI Prompts**: Embedded in each issue for immediate use
+- **📊 Progress Tracking**: Visual checkboxes in development plan
 
 ---
 
-Happy coding with TDD! 🚀
+**🚀 Ready to build with AI + TDD!** Start with Epic 1, Issue #001 and let AI accelerate your development! 🤖☕
