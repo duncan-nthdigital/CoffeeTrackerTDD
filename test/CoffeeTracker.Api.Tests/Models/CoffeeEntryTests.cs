@@ -28,7 +28,8 @@ public class CoffeeEntryTests
         var coffeeEntry = new CoffeeTracker.Api.Models.CoffeeEntry
         {
             CoffeeType = null!,
-            Size = "Medium"
+            Size = "Medium",
+            SessionId = "test-session"
         };
 
         // Act
@@ -47,7 +48,8 @@ public class CoffeeEntryTests
         var coffeeEntry = new CoffeeTracker.Api.Models.CoffeeEntry
         {
             CoffeeType = new string('a', 51), // 51 characters
-            Size = "Medium"
+            Size = "Medium",
+            SessionId = "test-session"
         };
 
         // Act
@@ -66,7 +68,8 @@ public class CoffeeEntryTests
         var coffeeEntry = new CoffeeTracker.Api.Models.CoffeeEntry
         {
             CoffeeType = "Espresso",
-            Size = null!
+            Size = null!,
+            SessionId = "test-session"
         };
 
         // Act
@@ -86,7 +89,8 @@ public class CoffeeEntryTests
         {
             CoffeeType = "Espresso",
             Size = "Medium",
-            Source = new string('a', 101) // 101 characters
+            Source = new string('a', 101), // 101 characters
+            SessionId = "test-session"
         };
 
         // Act
@@ -106,7 +110,8 @@ public class CoffeeEntryTests
         {
             CoffeeType = "Espresso",
             Size = "Medium",
-            Source = null
+            Source = null,
+            SessionId = "test-session-123"
         };
 
         // Act
@@ -124,7 +129,8 @@ public class CoffeeEntryTests
         var coffeeEntry = new CoffeeTracker.Api.Models.CoffeeEntry
         {
             CoffeeType = "Espresso",
-            Size = "Medium"
+            Size = "Medium",
+            SessionId = "test-session"
         };
 
         // Assert
@@ -144,7 +150,8 @@ public class CoffeeEntryTests
         var coffeeEntry = new CoffeeTracker.Api.Models.CoffeeEntry
         {
             CoffeeType = coffeeType,
-            Size = size
+            Size = size,
+            SessionId = "test-session"
         };
 
         // Assert
@@ -159,7 +166,8 @@ public class CoffeeEntryTests
         {
             CoffeeType = "Latte",
             Size = "Large",
-            Source = "Starbucks"
+            Source = "Starbucks",
+            SessionId = "test-session"
         };
 
         // Assert
@@ -179,7 +187,8 @@ public class CoffeeEntryTests
         {
             CoffeeType = "Cappuccino",
             Size = "Medium",
-            Source = "Local Cafe"
+            Source = "Local Cafe",
+            SessionId = "test-session-123"
         };
 
         // Act
