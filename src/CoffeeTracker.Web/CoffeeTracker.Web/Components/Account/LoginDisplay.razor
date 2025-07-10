@@ -1,0 +1,36 @@
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<div class="user-info">
+    <AuthorizeView>
+        <Authorized>
+            <span class="user-name">Hello, @context.User.Identity?.Name!</span>
+            <form method="post" action="/logout">
+                <AntiforgeryToken />
+                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </Authorized>
+        <NotAuthorized>
+            <a href="/login" class="btn btn-primary btn-sm">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+<style>
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .user-name {
+        font-weight: 500;
+    }
+</style>
