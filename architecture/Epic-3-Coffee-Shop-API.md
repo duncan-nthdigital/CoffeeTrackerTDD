@@ -23,11 +23,16 @@ Create REST API endpoints for coffee shop data retrieval and basic search functi
 - [ ] Controller handles GET /api/coffee-shops/search (search by name/location)
 - [ ] Proper error handling and validation
 - [ ] Unit tests for all endpoints
+- [ ] Swagger/OpenAPI documentation configured for all endpoints
+- [ ] XML documentation comments added to all controller actions
+- [ ] Response types documented with [ProducesResponseType] attributes
 
 **Technical Details:**
 - Read-only API for Phase 1 (no creation/updates)
 - Support basic search and filtering
 - Return paginated results for large datasets
+- Include comprehensive Swagger/OpenAPI documentation
+- Follow same documentation standards as Epic 2 APIs
 
 **Copilot Prompt:**
 ```
@@ -70,6 +75,38 @@ Error handling:
 - Use ProblemDetails for error responses
 - Validate query parameters
 - Handle service layer exceptions
+
+Swagger/OpenAPI Documentation:
+- Add XML documentation comments (/// <summary>) to all controller actions
+- Use [ProducesResponseType] attributes to document all possible responses
+- Include [SwaggerOperation] attributes for detailed endpoint descriptions
+- Add parameter descriptions using [SwaggerParameter] attributes
+- Document all HTTP status codes (200, 400, 404, 500)
+- Include example responses for all endpoints
+- Add API tags to group coffee shop endpoints together
+
+XML Documentation Requirements:
+- Document all controller actions with clear summaries
+- Document all parameters with /// <param> tags
+- Document return values with /// <returns> tags
+- Include usage examples in documentation
+- Document error scenarios and status codes
+
+Example XML Documentation:
+```csharp
+/// <summary>
+/// Retrieves a paginated list of active coffee shops
+/// </summary>
+/// <param name="page">Page number (default: 1)</param>
+/// <param name="pageSize">Number of items per page (default: 20, max: 100)</param>
+/// <param name="search">Optional search term to filter by shop name</param>
+/// <returns>A paginated list of coffee shops</returns>
+/// <response code="200">Returns the paginated list of coffee shops</response>
+/// <response code="400">Invalid pagination parameters</response>
+[HttpGet]
+[ProducesResponseType(typeof(PagedResponse<CoffeeShopResponse>), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+```
 
 Create comprehensive unit tests using xUnit and Moq that test:
 - All endpoints with valid parameters
@@ -277,10 +314,13 @@ API updates:
 1. Add to CoffeeShopsController:
    - GET /api/coffee-shops/nearest?lat={lat}&lng={lng}&maxResults={n}&maxDistance={km}
    - Return shops sorted by distance with distance included
+   - Add comprehensive Swagger documentation for location parameters
+   - Document coordinate validation rules and error responses
 
 2. Update CoffeeShopResponse DTO:
    - Add optional Distance property (decimal, in km)
    - Add HasLocation property (bool)
+   - Include Swagger schema annotations for new properties
 
 Geographic features:
 - Validate latitude (-90 to 90) and longitude (-180 to 180)
@@ -321,6 +361,8 @@ Create integration tests for coffee shop API endpoints testing the complete flow
 - [ ] Tests verify search and pagination functionality
 - [ ] Tests check performance requirements
 - [ ] Tests run independently
+- [ ] Tests verify Swagger documentation is complete and accessible
+- [ ] OpenAPI specification validates correctly for coffee shop endpoints
 
 **Technical Details:**
 - Test with realistic seed data
@@ -387,11 +429,19 @@ Error handling tests:
 - Database connection issues (simulate)
 - Large result sets
 
+Swagger/OpenAPI tests:
+- Verify /swagger endpoint includes coffee shop APIs
+- Validate OpenAPI specification for coffee shop endpoints
+- Test that all endpoints are documented with proper schemas
+- Verify response examples are present and accurate
+- Test API documentation accessibility and completeness
+
 Create test utilities:
 - Helper methods for creating test data
 - Extensions for asserting API responses
 - Performance measurement utilities
 - Search relevance assertion helpers
+- Swagger documentation validation utilities
 
 Test data requirements:
 - Use diverse coffee shop names for search testing
@@ -419,6 +469,10 @@ Example: `Get_CoffeeShops_WithValidPagination_ReturnsPagedResults`
 - [ ] Performance requirements met (<500ms response time)
 - [ ] API follows REST conventions
 - [ ] Caching implemented for better performance
+- [ ] Swagger/OpenAPI documentation complete for all coffee shop endpoints
+- [ ] Coffee shop APIs integrated with existing Swagger UI from Epic 2 (Issue #012)
+- [ ] All endpoints documented with examples and proper descriptions
+- [ ] No separate Swagger configuration needed (reuses Epic 2 setup)
 
 ## 📋 Notes
 
