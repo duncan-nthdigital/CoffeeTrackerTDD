@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CoffeeTracker.Api.Data;
+using CoffeeTracker.Api.Services;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -71,7 +72,30 @@ else
 }
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new()
+        {
+            Title = "Coffee Tracker API",
+            Version = "v1",
+            Description = "Anonymous coffee consumption tracking API that allows users to log and retrieve their coffee entries without authentication.",
+            Contact = new()
+            {
+                Name = "Coffee Tracker Support",
+                Email = "support@coffeetracker.app"
+            }
+        };
+        return Task.CompletedTask;
+    });
+});
+
+// Add controllers
+builder.Services.AddControllers();
+
+// Register application services
+builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
 
 var app = builder.Build();
 
@@ -82,6 +106,17 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/openapi/v1.json", "Coffee Tracker API v1");
+        c.RoutePrefix = "swagger";
+        c.DocumentTitle = "Coffee Tracker API Documentation";
+        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelExpandDepth(2);
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        c.EnableFilter();
+        c.EnableDeepLinking();
+    });
 }
 
 app.UseHttpsRedirection();
@@ -128,6 +163,9 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+// Map controllers
+app.MapControllers();
 
 app.Run();
 
