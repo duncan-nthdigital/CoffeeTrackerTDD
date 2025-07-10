@@ -20,7 +20,7 @@ Follow the **Three Laws of TDD** as defined by Robert C. Martin (Uncle Bob):
 - Use **xUnit** for unit testing. Place tests in a separate `Tests` project.
 
 ## 🧪 Test Style and Structure
-
+- Only create one failing test at a time, during the red,green, refactor cycle.
 - Use **descriptive test method names** that express intent (e.g., `Should_Return_Zero_When_Given_Empty_String`).
 - Prefer **Arrange-Act-Assert** structure in tests, but simplify when appropriate.
 - Use **Theory and InlineData** to reduce test duplication for similar scenarios.

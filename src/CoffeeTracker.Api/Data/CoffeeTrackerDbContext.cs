@@ -26,6 +26,12 @@ public class CoffeeTrackerDbContext : DbContext
     public DbSet<CoffeeEntry> CoffeeEntries { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the DbSet for coffee shops.
+    /// Provides access to coffee shop records for tracking coffee sources.
+    /// </summary>
+    public DbSet<CoffeeShop> CoffeeShops { get; set; } = null!;
+
+    /// <summary>
     /// Configures the entity models and their relationships using Fluent API.
     /// </summary>
     /// <param name="modelBuilder">The builder being used to construct the model for this context.</param>
@@ -34,6 +40,8 @@ public class CoffeeTrackerDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         
         ConfigureCoffeeEntry(modelBuilder);
+        ConfigureCoffeeShop(modelBuilder);
+        SeedCoffeeShops(modelBuilder);
     }
 
     /// <summary>
@@ -78,5 +86,74 @@ public class CoffeeTrackerDbContext : DbContext
             // Exclude computed properties from database mapping
             entity.Ignore(e => e.CaffeineAmount);
         });
+    }
+
+    /// <summary>
+    /// Configures the CoffeeShop entity with appropriate constraints and indexes.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder to configure.</param>
+    private static void ConfigureCoffeeShop(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CoffeeShop>(entity =>
+        {
+            // Primary key configuration
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+            
+            // Required fields configuration
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(CoffeeShop.NameMaxLength)
+                .HasComment("Name of the coffee shop");
+                
+            // Optional fields configuration
+            entity.Property(e => e.Address)
+                .HasMaxLength(CoffeeShop.AddressMaxLength)
+                .HasComment("Address of the coffee shop");
+                
+            entity.Property(e => e.IsActive)
+                .IsRequired()
+                .HasDefaultValue(true)
+                .HasComment("Whether the coffee shop is active");
+                
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("datetime('now')")
+                .HasComment("When the coffee shop record was created (UTC)");
+                
+            // Performance indexes
+            entity.HasIndex(e => e.Name)
+                .HasDatabaseName("IX_CoffeeShops_Name")
+                .HasFilter(null) // Ensure SQLite compatibility
+                .HasAnnotation("Description", "Index for coffee shop name searches");
+                
+            entity.HasIndex(e => e.IsActive)
+                .HasDatabaseName("IX_CoffeeShops_IsActive")
+                .HasFilter(null) // Ensure SQLite compatibility
+                .HasAnnotation("Description", "Index for filtering active coffee shops");
+        });
+    }
+
+    /// <summary>
+    /// Seeds the database with sample coffee shop data.
+    /// </summary>
+    /// <param name="modelBuilder">The model builder to configure.</param>
+    private static void SeedCoffeeShops(ModelBuilder modelBuilder)
+    {
+        var seedData = new[]
+        {
+            new CoffeeShop { Id = 1, Name = "Home", Address = null, IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 2, Name = "Starbucks", Address = "Multiple Locations", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 3, Name = "Dunkin' Donuts", Address = "Multiple Locations", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 4, Name = "Local Coffee House", Address = "123 Main Street", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 5, Name = "Peet's Coffee", Address = "456 Oak Avenue", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 6, Name = "The Coffee Bean & Tea Leaf", Address = "789 Elm Street", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 7, Name = "Blue Bottle Coffee", Address = "321 Pine Road", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 8, Name = "Tim Hortons", Address = "654 Maple Drive", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new CoffeeShop { Id = 9, Name = "Costa Coffee", Address = "987 Cedar Lane", IsActive = true, CreatedAt = DateTime.UtcNow }
+        };
+
+        modelBuilder.Entity<CoffeeShop>().HasData(seedData);
     }
 }
