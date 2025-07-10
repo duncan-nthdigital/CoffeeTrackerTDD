@@ -141,17 +141,19 @@ public class CoffeeTrackerDbContext : DbContext
     /// <param name="modelBuilder">The model builder to configure.</param>
     private static void SeedCoffeeShops(ModelBuilder modelBuilder)
     {
+        var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        
         var seedData = new[]
         {
-            new CoffeeShop { Id = 1, Name = "Home", Address = null, IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 2, Name = "Starbucks", Address = "Multiple Locations", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 3, Name = "Dunkin' Donuts", Address = "Multiple Locations", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 4, Name = "Local Coffee House", Address = "123 Main Street", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 5, Name = "Peet's Coffee", Address = "456 Oak Avenue", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 6, Name = "The Coffee Bean & Tea Leaf", Address = "789 Elm Street", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 7, Name = "Blue Bottle Coffee", Address = "321 Pine Road", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 8, Name = "Tim Hortons", Address = "654 Maple Drive", IsActive = true, CreatedAt = DateTime.UtcNow },
-            new CoffeeShop { Id = 9, Name = "Costa Coffee", Address = "987 Cedar Lane", IsActive = true, CreatedAt = DateTime.UtcNow }
+            new CoffeeShop { Id = 1, Name = "Home", Address = null, IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 2, Name = "Starbucks", Address = "Multiple Locations", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 3, Name = "Dunkin' Donuts", Address = "Multiple Locations", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 4, Name = "Local Coffee House", Address = "123 Main Street", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 5, Name = "Peet's Coffee", Address = "456 Oak Avenue", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 6, Name = "The Coffee Bean & Tea Leaf", Address = "789 Elm Street", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 7, Name = "Blue Bottle Coffee", Address = "321 Pine Road", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 8, Name = "Tim Hortons", Address = "654 Maple Drive", IsActive = true, CreatedAt = seedDate },
+            new CoffeeShop { Id = 9, Name = "Costa Coffee", Address = "987 Cedar Lane", IsActive = true, CreatedAt = seedDate }
         };
 
         modelBuilder.Entity<CoffeeShop>().HasData(seedData);
