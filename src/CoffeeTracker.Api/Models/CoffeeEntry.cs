@@ -65,6 +65,13 @@ public class CoffeeEntry
     public DateTime Timestamp { get; set; }
 
     /// <summary>
+    /// Gets or sets the anonymous session identifier for tracking coffee entries
+    /// </summary>
+    [Required]
+    [StringLength(100)]
+    public string SessionId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets the calculated caffeine amount based on coffee type and size
     /// </summary>
     public int CaffeineAmount => CalculateCaffeineAmount();
