@@ -11,7 +11,7 @@ Follow the **Three Laws of TDD** as defined by Robert C. Martin (Uncle Bob):
 ## 🛠️ Development Workflow
 
 - Use the **Red-Green-Refactor** cycle:
-  - **Red**: Write a failing single unit test first. Ensure it fails for the right reason.
+  - **Red**: Write a failing single unit test first. Ensure it fails for the right reason. when running an expected red test, give yourself a timeout time, because its expected to fail, so don't wait too long for it to fail.
   - **Green**: Write the minimal code to make the test pass. Don't worry about perfect code yet.
   - **Refactor**: Clean up the code while keeping tests green. Improve design and readability.
 
