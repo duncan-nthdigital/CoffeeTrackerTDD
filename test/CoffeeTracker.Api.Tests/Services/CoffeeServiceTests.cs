@@ -204,20 +204,21 @@ public class CoffeeServiceTests : IDisposable
         // Assert
         summary.Should().NotBeNull();
         summary.TotalEntries.Should().Be(2);
-        summary.TotalCaffeineMilligrams.Should().BeGreaterThan(0);
+        summary.TotalCaffeine.Should().BeGreaterThan(0);
         summary.Entries.Should().HaveCount(2);
-        summary.Date.Should().Be(DateOnly.FromDateTime(DateTime.UtcNow));
+        summary.Date.Should().Be(DateTime.Today);
+        summary.AverageCaffeinePerEntry.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public async Task GetDailySummaryAsync_Should_Set_Limit_Flags_Correctly()
+    public async Task GetDailySummaryAsync_Should_Calculate_AverageCaffeine_Correctly()
     {
         // Arrange
-        var sessionId = "session-limits";
+        var sessionId = "session-avg";
         var request = new CreateCoffeeEntryRequest { CoffeeType = "Espresso", Size = "Small" };
 
-        // Create entries near the limit
-        for (int i = 0; i < 9; i++)
+        // Create entries
+        for (int i = 0; i < 2; i++)
         {
             await _service.CreateCoffeeEntryAsync(request, sessionId);
         }
@@ -227,13 +228,9 @@ public class CoffeeServiceTests : IDisposable
 
         // Assert
         summary.Should().NotBeNull();
-        summary.TotalEntries.Should().Be(9);
-        summary.HasReachedDailyLimit.Should().BeFalse(); // Not yet at limit of 10
-        
-        // Add one more to reach the limit
-        await _service.CreateCoffeeEntryAsync(request, sessionId);
-        var limitSummary = await _service.GetDailySummaryAsync(sessionId);
-        limitSummary.HasReachedDailyLimit.Should().BeTrue();
+        summary.TotalEntries.Should().Be(2);
+        summary.AverageCaffeinePerEntry.Should().BeGreaterThan(0);
+        summary.AverageCaffeinePerEntry.Should().Be((decimal)summary.TotalCaffeine / summary.TotalEntries);
     }
 
     [Theory]

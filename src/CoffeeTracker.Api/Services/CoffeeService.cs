@@ -162,15 +162,15 @@ public class CoffeeService : ICoffeeService
 
         var totalCaffeine = entries.Sum(e => e.CaffeineAmount);
         var totalEntries = entries.Count;
+        var averageCaffeinePerEntry = totalEntries > 0 ? (decimal)totalCaffeine / totalEntries : 0;
 
         return new DailySummaryResponse
         {
-            Date = summaryDateOnly,
+            Date = summaryDateOnly.ToDateTime(TimeOnly.MinValue),
             TotalEntries = totalEntries,
-            TotalCaffeineMilligrams = totalCaffeine,
-            Entries = entries.Select(MapToResponse),
-            HasReachedDailyLimit = totalEntries >= MaxDailyEntries,
-            HasReachedCaffeineLimit = totalCaffeine >= MaxDailyCaffeineMilligrams
+            TotalCaffeine = totalCaffeine,
+            Entries = entries.Select(MapToResponse).ToList(),
+            AverageCaffeinePerEntry = averageCaffeinePerEntry
         };
     }
 
@@ -261,7 +261,8 @@ public class CoffeeService : ICoffeeService
             Size = entry.Size,
             Source = entry.Source,
             Timestamp = entry.Timestamp,
-            CaffeineAmount = entry.CaffeineAmount
+            CaffeineAmount = entry.CaffeineAmount,
+            FormattedTimestamp = entry.Timestamp.ToString("h:mm tt")
         };
     }
 }
