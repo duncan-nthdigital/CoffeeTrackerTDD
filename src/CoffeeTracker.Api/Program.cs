@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CoffeeTracker.Api.Data;
+using CoffeeTracker.Api.Middleware;
 using CoffeeTracker.Api.Services;
+using CoffeeTracker.Api.Services.Background;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -101,8 +103,19 @@ builder.Services.AddControllers();
 // TODO: Add AutoMapper
 // builder.Services.AddAutoMapper(typeof(Program));
 
+// Configure session management
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.Lax;
+    options.Secure = CookieSecurePolicy.SameAsRequest;
+});
+
 // Register application services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddHostedService<SessionCleanupService>();
 
 var app = builder.Build();
 
@@ -129,6 +142,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWebApp");
+
+app.UseCookiePolicy();
+app.UseAnonymousSession();
 
 app.UseAuthentication();
 app.UseAuthorization();

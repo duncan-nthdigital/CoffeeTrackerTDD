@@ -1,6 +1,7 @@
 using CoffeeTracker.Api.Data;
 using CoffeeTracker.Api.DTOs;
 using CoffeeTracker.Api.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,16 +14,22 @@ public class CoffeeEntryService : ICoffeeEntryService
 {
     private readonly CoffeeTrackerDbContext _context;
     private readonly ILogger<CoffeeEntryService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
     /// Initializes a new instance of the CoffeeEntryService
     /// </summary>
     /// <param name="context">Database context</param>
     /// <param name="logger">Logger instance</param>
-    public CoffeeEntryService(CoffeeTrackerDbContext context, ILogger<CoffeeEntryService> logger)
+    /// <param name="httpContextAccessor">HTTP context accessor</param>
+    public CoffeeEntryService(
+        CoffeeTrackerDbContext context, 
+        ILogger<CoffeeEntryService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     }
 
     /// <summary>
@@ -35,14 +42,24 @@ public class CoffeeEntryService : ICoffeeEntryService
         if (request == null)
             throw new ArgumentNullException(nameof(request));
 
-        _logger.LogInformation("Creating coffee entry: {CoffeeType} {Size}", request.CoffeeType, request.Size);
+        // Get the session ID from the HTTP context
+        var sessionId = GetSessionId();
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            _logger.LogError("No session ID available for creating coffee entry");
+            throw new InvalidOperationException("No session ID available");
+        }
+
+        _logger.LogInformation("Creating coffee entry: {CoffeeType} {Size} for session: {SessionId}", 
+            request.CoffeeType, request.Size, sessionId);
 
         var coffeeEntry = new CoffeeEntry
         {
             CoffeeType = request.CoffeeType,
             Size = request.Size,
             Source = request.Source,
-            Timestamp = request.Timestamp ?? DateTime.UtcNow
+            Timestamp = request.Timestamp ?? DateTime.UtcNow,
+            SessionId = sessionId
         };
 
         _context.CoffeeEntries.Add(coffeeEntry);
@@ -64,10 +81,19 @@ public class CoffeeEntryService : ICoffeeEntryService
         var startDate = filterDate.ToDateTime(TimeOnly.MinValue);
         var endDate = filterDate.ToDateTime(TimeOnly.MaxValue);
 
-        _logger.LogInformation("Getting coffee entries for date: {Date}", filterDate);
+        // Get the session ID from the HTTP context
+        var sessionId = GetSessionId();
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            _logger.LogError("No session ID available for getting coffee entries");
+            throw new InvalidOperationException("No session ID available");
+        }
+
+        _logger.LogInformation("Getting coffee entries for date: {Date} and session: {SessionId}", 
+            filterDate, sessionId);
 
         var entries = await _context.CoffeeEntries
-            .Where(e => e.Timestamp >= startDate && e.Timestamp <= endDate)
+            .Where(e => e.Timestamp >= startDate && e.Timestamp <= endDate && e.SessionId == sessionId)
             .OrderBy(e => e.Timestamp)
             .ToListAsync();
 
@@ -92,5 +118,20 @@ public class CoffeeEntryService : ICoffeeEntryService
             Timestamp = entry.Timestamp,
             CaffeineAmount = entry.CaffeineAmount
         };
+    }
+    
+    /// <summary>
+    /// Gets the current session ID from the HTTP context
+    /// </summary>
+    /// <returns>The session ID or null if not available</returns>
+    private string? GetSessionId()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null || !httpContext.Items.TryGetValue("SessionId", out var sessionId))
+        {
+            return null;
+        }
+        
+        return sessionId?.ToString();
     }
 }

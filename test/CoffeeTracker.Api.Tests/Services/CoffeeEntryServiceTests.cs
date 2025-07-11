@@ -3,6 +3,7 @@ using CoffeeTracker.Api.DTOs;
 using CoffeeTracker.Api.Models;
 using CoffeeTracker.Api.Services;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -15,10 +16,18 @@ namespace CoffeeTracker.Api.Tests.Services;
 public class CoffeeEntryServiceTests
 {
     private readonly Mock<ILogger<CoffeeEntryService>> _mockLogger;
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+    private readonly string _testSessionId = "test-session-id-123456789012345678901234";
 
     public CoffeeEntryServiceTests()
     {
         _mockLogger = new Mock<ILogger<CoffeeEntryService>>();
+        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        
+        // Set up the HTTP context with a session ID
+        var httpContext = new DefaultHttpContext();
+        httpContext.Items["SessionId"] = _testSessionId;
+        _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(httpContext);
     }
 
     [Fact]
