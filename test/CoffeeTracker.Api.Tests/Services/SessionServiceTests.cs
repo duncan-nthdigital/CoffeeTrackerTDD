@@ -38,7 +38,27 @@ public class SessionServiceTests
         responseCookies.Setup(c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()));
         
         httpContext.Request.Cookies = cookieCollection.Object;
-        httpContext.Response.Cookies = responseCookies.Object;
+        
+        // Replace the Response.Cookies with the mock
+        var responseProperty = typeof(HttpResponse).GetProperty("Cookies");
+        var defaultResponse = httpContext.Response;
+        var mockResponse = new Mock<HttpResponse>();
+        
+        // Copy properties from defaultResponse to mockResponse except for Cookies
+        foreach (var property in typeof(HttpResponse).GetProperties())
+        {
+            if (property.Name != "Cookies" && property.CanRead && property.CanWrite)
+            {
+                var value = property.GetValue(defaultResponse);
+                property.SetValue(mockResponse.Object, value);
+            }
+        }
+        
+        mockResponse.Setup(r => r.Cookies).Returns(responseCookies.Object);
+        
+        // Set the mock response on the HttpContext
+        var contextProperty = typeof(DefaultHttpContext).GetProperty("Response");
+        contextProperty?.SetValue(httpContext, mockResponse.Object);
         
         var service = new SessionService(_dbContext, _loggerMock.Object);
         

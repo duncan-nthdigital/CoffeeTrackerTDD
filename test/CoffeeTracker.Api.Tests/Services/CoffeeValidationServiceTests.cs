@@ -14,12 +14,12 @@ namespace CoffeeTracker.Api.Tests.Services;
 
 public class CoffeeValidationServiceTests
 {
-    private readonly Mock<ICoffeeEntryRepository> _repositoryMock;
+    private readonly Mock<CoffeeTracker.Api.Services.ICoffeeEntryRepository> _repositoryMock;
     private readonly ICoffeeValidationService _validationService;
 
     public CoffeeValidationServiceTests()
     {
-        _repositoryMock = new Mock<ICoffeeEntryRepository>();
+        _repositoryMock = new Mock<CoffeeTracker.Api.Services.ICoffeeEntryRepository>();
         _validationService = new CoffeeValidationService(_repositoryMock.Object);
     }
     
@@ -55,10 +55,12 @@ public class CoffeeValidationServiceTests
         var sessionId = "test-session";
         var date = DateTime.UtcNow.Date;
         
+        // Mock entries with CaffeineAmount property
+        // Since CaffeineAmount is a calculated property, we need to mock it
         var entries = new List<CoffeeEntry>
         {
-            new() { SessionId = sessionId, CaffeineMg = 200, Timestamp = date.AddHours(9) },
-            new() { SessionId = sessionId, CaffeineMg = 150, Timestamp = date.AddHours(12) }
+            new() { SessionId = sessionId, CoffeeType = "Espresso", Size = "Medium", Timestamp = date.AddHours(9) },
+            new() { SessionId = sessionId, CoffeeType = "Latte", Size = "Small", Timestamp = date.AddHours(12) }
         };
         
         _repositoryMock.Setup(r => r.GetCoffeeEntriesBySessionAndDateAsync(sessionId, date))
@@ -78,7 +80,8 @@ public class CoffeeValidationServiceTests
         var entries = Enumerable.Range(1, 10).Select(i => new CoffeeEntry 
         { 
             SessionId = sessionId, 
-            CaffeineMg = 100, 
+            CoffeeType = "Espresso",
+            Size = "Small",
             Timestamp = date.AddHours(i) 
         }).ToList();
         
@@ -102,8 +105,8 @@ public class CoffeeValidationServiceTests
         
         var entries = new List<CoffeeEntry>
         {
-            new() { SessionId = sessionId, CaffeineMg = 600, Timestamp = date.AddHours(9) },
-            new() { SessionId = sessionId, CaffeineMg = 500, Timestamp = date.AddHours(12) }
+            new() { SessionId = sessionId, CoffeeType = "Espresso", Size = "Large", Timestamp = date.AddHours(9) },
+            new() { SessionId = sessionId, CoffeeType = "Espresso", Size = "Large", Timestamp = date.AddHours(12) }
         };
         
         _repositoryMock.Setup(r => r.GetCoffeeEntriesBySessionAndDateAsync(sessionId, date))
@@ -132,7 +135,7 @@ public class CoffeeValidationServiceTests
         
         var entries = new List<CoffeeEntry>
         {
-            new() { SessionId = sessionId, CaffeineMg = 200, Timestamp = date.AddHours(9) }
+            new() { SessionId = sessionId, CoffeeType = "Americano", Size = "Medium", Timestamp = date.AddHours(9) }
         };
         
         _repositoryMock.Setup(r => r.GetCoffeeEntriesBySessionAndDateAsync(sessionId, It.IsAny<DateTime>()))
@@ -209,9 +212,4 @@ public class CoffeeValidationServiceTests
     }
 }
 
-// Define the repository interface for use in tests
-public interface ICoffeeEntryRepository
-{
-    Task<bool> SessionExistsAsync(string sessionId);
-    Task<List<CoffeeEntry>> GetCoffeeEntriesBySessionAndDateAsync(string sessionId, DateTime date);
-}
+// Using real interface from the main project

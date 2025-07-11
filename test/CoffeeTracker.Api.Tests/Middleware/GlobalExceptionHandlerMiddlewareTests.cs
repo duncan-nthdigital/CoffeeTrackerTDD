@@ -16,7 +16,7 @@ namespace CoffeeTracker.Api.Tests.Middleware;
 public class GlobalExceptionHandlerMiddlewareTests
 {
     private readonly Mock<ILogger<GlobalExceptionHandlerMiddleware>> _loggerMock;
-    private readonly RequestDelegate _next;
+    private RequestDelegate _next; // Changed from readonly to allow reassignment in tests
     private readonly DefaultHttpContext _httpContext;
     private readonly MemoryStream _responseBody;
 

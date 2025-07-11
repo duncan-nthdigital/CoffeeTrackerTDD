@@ -41,7 +41,9 @@ public class CoffeeEntryRepository : ICoffeeEntryRepository
     /// <returns>True if the session exists, false otherwise</returns>
     public async Task<bool> SessionExistsAsync(string sessionId)
     {
-        return await _dbContext.Sessions
-            .AnyAsync(s => s.SessionId == sessionId);
+        // Instead of checking a Sessions table (which doesn't exist),
+        // we'll check if there's any CoffeeEntry with the given sessionId
+        return await _dbContext.CoffeeEntries
+            .AnyAsync(e => e.SessionId == sessionId);
     }
 }

@@ -1,7 +1,6 @@
 using CoffeeTracker.Api.DTOs;
 using CoffeeTracker.Api.Exceptions;
 using CoffeeTracker.Api.Models;
-using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace CoffeeTracker.Api.Services;
@@ -62,7 +61,7 @@ public class CoffeeValidationService : ICoffeeValidationService
         }
         
         // Check caffeine limit
-        int totalCaffeine = dailyEntries.Sum(e => e.CaffeineMg);
+        int totalCaffeine = dailyEntries.Sum(e => e.CaffeineAmount);
         
         if (totalCaffeine >= MaxDailyCaffeine)
         {
@@ -107,13 +106,13 @@ public class CoffeeValidationService : ICoffeeValidationService
         // Validate coffee type
         if (!Enum.TryParse<CoffeeType>(request.CoffeeType, out _))
         {
-            throw new ValidationException($"Invalid coffee type: {request.CoffeeType}");
+            throw new CoffeeTracker.Api.Exceptions.ValidationException($"Invalid coffee type: {request.CoffeeType}");
         }
         
         // Validate coffee size
         if (!Enum.TryParse<CoffeeSize>(request.Size, out _))
         {
-            throw new ValidationException($"Invalid coffee size: {request.Size}");
+            throw new CoffeeTracker.Api.Exceptions.ValidationException($"Invalid coffee size: {request.Size}");
         }
     }
     
@@ -124,13 +123,13 @@ public class CoffeeValidationService : ICoffeeValidationService
             // Check for future dates
             if (timestamp.Value > DateTime.UtcNow)
             {
-                throw new ValidationException($"Timestamp cannot be in the future: {timestamp.Value}");
+                throw new CoffeeTracker.Api.Exceptions.ValidationException($"Timestamp cannot be in the future: {timestamp.Value}");
             }
             
             // Check for unreasonable past dates (e.g., more than 30 days ago)
             if (timestamp.Value < DateTime.UtcNow.AddDays(-30))
             {
-                throw new ValidationException($"Timestamp is too far in the past: {timestamp.Value}");
+                throw new CoffeeTracker.Api.Exceptions.ValidationException($"Timestamp is too far in the past: {timestamp.Value}");
             }
         }
     }
