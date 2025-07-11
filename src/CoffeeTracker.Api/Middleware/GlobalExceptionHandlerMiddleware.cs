@@ -15,23 +15,26 @@ public class GlobalExceptionHandlerMiddleware
     /// <summary>
     /// Initializes a new instance of the GlobalExceptionHandlerMiddleware class
     /// </summary>
+    /// <param name="next">The next middleware delegate</param>
     /// <param name="logger">The logger</param>
-    public GlobalExceptionHandlerMiddleware(ILogger<GlobalExceptionHandlerMiddleware> logger)
+    public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
+        _next = next;
         _logger = logger;
     }
+
+    private readonly RequestDelegate _next;
 
     /// <summary>
     /// Invokes the middleware
     /// </summary>
     /// <param name="context">The HTTP context</param>
-    /// <param name="next">The next delegate in the pipeline</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await next(context);
+            await _next(context);
         }
         catch (Exception ex)
         {
