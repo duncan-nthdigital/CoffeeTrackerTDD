@@ -74,14 +74,16 @@ public class AnonymousSessionMiddlewareTests
     {
         // Arrange
         var appBuilderMock = new Mock<IApplicationBuilder>();
-        appBuilderMock.Setup(x => x.UseMiddleware<AnonymousSessionMiddleware>())
+        
+        // Avoid using extension method in mock setup
+        appBuilderMock.Setup(x => x.Use(It.IsAny<Func<RequestDelegate, RequestDelegate>>()))
             .Returns(appBuilderMock.Object);
         
         // Act
         var result = AnonymousSessionMiddlewareExtensions.UseAnonymousSession(appBuilderMock.Object);
         
         // Assert
-        appBuilderMock.Verify(x => x.UseMiddleware<AnonymousSessionMiddleware>(), Times.Once);
+        appBuilderMock.Verify(x => x.Use(It.IsAny<Func<RequestDelegate, RequestDelegate>>()), Times.AtLeastOnce());
         Assert.Same(appBuilderMock.Object, result);
     }
 }

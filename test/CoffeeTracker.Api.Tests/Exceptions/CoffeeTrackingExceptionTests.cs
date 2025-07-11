@@ -41,7 +41,7 @@ public class ValidationExceptionTests
 
         // Assert
         Assert.Equal("Test validation message", exception.Message);
-        Assert.IsType<CoffeeTrackingException>(exception);
+        Assert.IsAssignableFrom<CoffeeTrackingException>(exception);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class SessionNotFoundExceptionTests
         // Assert
         Assert.Equal(sessionId, exception.SessionId);
         Assert.Contains(sessionId, exception.Message);
-        Assert.IsType<CoffeeTrackingException>(exception);
+        Assert.IsAssignableFrom<CoffeeTrackingException>(exception);
     }
 
     [Fact]

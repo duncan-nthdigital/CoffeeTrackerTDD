@@ -39,31 +39,26 @@ public class SessionServiceTests
         
         httpContext.Request.Cookies = cookieCollection.Object;
         
-        // Replace the Response.Cookies with the mock
-        var responseProperty = typeof(HttpResponse).GetProperty("Cookies");
-        var defaultResponse = httpContext.Response;
+        // Create a custom HttpContext with our mocked cookies
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
         var mockResponse = new Mock<HttpResponse>();
         
-        // Copy properties from defaultResponse to mockResponse except for Cookies
-        foreach (var property in typeof(HttpResponse).GetProperties())
-        {
-            if (property.Name != "Cookies" && property.CanRead && property.CanWrite)
-            {
-                var value = property.GetValue(defaultResponse);
-                property.SetValue(mockResponse.Object, value);
-            }
-        }
+        // Setup request with the cookie collection
+        mockRequest.Setup(r => r.Cookies).Returns(cookieCollection.Object);
+        mockRequest.Setup(r => r.IsHttps).Returns(false);
         
+        // Setup response with the response cookies
         mockResponse.Setup(r => r.Cookies).Returns(responseCookies.Object);
         
-        // Set the mock response on the HttpContext
-        var contextProperty = typeof(DefaultHttpContext).GetProperty("Response");
-        contextProperty?.SetValue(httpContext, mockResponse.Object);
+        // Link the mocks to the HttpContext
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
+        mockHttpContext.Setup(c => c.Response).Returns(mockResponse.Object);
         
         var service = new SessionService(_dbContext, _loggerMock.Object);
         
         // Act
-        var sessionId = service.GetOrCreateSessionId(httpContext);
+        var sessionId = service.GetOrCreateSessionId(mockHttpContext.Object);
         
         // Assert
         Assert.NotNull(sessionId);
@@ -78,15 +73,23 @@ public class SessionServiceTests
     public void GetOrCreateSessionId_WithExistingValidCookie_ReturnsCookieValue()
     {
         // Arrange
-        var httpContext = new DefaultHttpContext();
         var existingSessionId = "abcdef1234567890abcdef1234567890"; // 32 chars
         
-        httpContext.Request.Headers.Cookie = $"coffee-session={existingSessionId}";
+        var cookieCollection = new Mock<IRequestCookieCollection>();
+        cookieCollection.Setup(c => c.TryGetValue(It.Is<string>(s => s == "coffee-session"), out existingSessionId))
+            .Returns(true);
+            
+        var mockHttpContext = new Mock<HttpContext>();
+        var mockRequest = new Mock<HttpRequest>();
+        
+        // Setup request with the cookie collection
+        mockRequest.Setup(r => r.Cookies).Returns(cookieCollection.Object);
+        mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
         
         var service = new SessionService(_dbContext, _loggerMock.Object);
         
         // Act
-        var sessionId = service.GetOrCreateSessionId(httpContext);
+        var sessionId = service.GetOrCreateSessionId(mockHttpContext.Object);
         
         // Assert
         Assert.Equal(existingSessionId, sessionId);

@@ -25,16 +25,26 @@ public class SessionCleanupServiceTests
         _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
         _configurationMock = new Mock<IConfiguration>();
         
-        // Setup configuration
-        _configurationMock.Setup(c => c.GetValue(
-            It.Is<string>(s => s == "SessionManagement:ExpirationHours"),
-            It.IsAny<double>()))
-            .Returns(24.0);
-            
-        _configurationMock.Setup(c => c.GetValue(
-            It.Is<string>(s => s == "SessionManagement:CleanupIntervalHours"),
-            It.IsAny<double>()))
-            .Returns(1.0);
+        // Setup configuration sections and settings
+        var sessionMgtSection = new Mock<IConfigurationSection>();
+        var expirationSection = new Mock<IConfigurationSection>();
+        var cleanupSection = new Mock<IConfigurationSection>();
+        
+        sessionMgtSection.Setup(s => s.Path).Returns("SessionManagement");
+        sessionMgtSection.Setup(s => s.Key).Returns("SessionManagement");
+        expirationSection.Setup(s => s.Path).Returns("SessionManagement:ExpirationHours");
+        expirationSection.Setup(s => s.Key).Returns("ExpirationHours");
+        expirationSection.Setup(s => s.Value).Returns("24.0");
+        cleanupSection.Setup(s => s.Path).Returns("SessionManagement:CleanupIntervalHours");
+        cleanupSection.Setup(s => s.Key).Returns("CleanupIntervalHours");
+        cleanupSection.Setup(s => s.Value).Returns("1.0");
+        
+        _configurationMock.Setup(c => c.GetSection("SessionManagement"))
+            .Returns(sessionMgtSection.Object);
+        _configurationMock.Setup(c => c.GetSection("SessionManagement:ExpirationHours"))
+            .Returns(expirationSection.Object);
+        _configurationMock.Setup(c => c.GetSection("SessionManagement:CleanupIntervalHours"))
+            .Returns(cleanupSection.Object);
             
         // Setup service provider
         _serviceScopeMock.Setup(s => s.ServiceProvider).Returns(_serviceProviderMock.Object);

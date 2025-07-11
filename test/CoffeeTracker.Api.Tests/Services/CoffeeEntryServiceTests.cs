@@ -131,15 +131,16 @@ public class CoffeeEntryServiceTests
         var today = DateTime.UtcNow.Date;
         var todayEntries = new List<CoffeeEntry>
         {
-            new() { CoffeeType = "Latte", Size = "Medium", Timestamp = today.AddHours(9) },
-            new() { CoffeeType = "Espresso", Size = "Small", Timestamp = today.AddHours(14) }
+            new() { CoffeeType = "Latte", Size = "Medium", Timestamp = today.AddHours(9), SessionId = _testSessionId },
+            new() { CoffeeType = "Espresso", Size = "Small", Timestamp = today.AddHours(14), SessionId = _testSessionId }
         };
         
         var yesterdayEntry = new CoffeeEntry 
         { 
             CoffeeType = "Americano", 
             Size = "Large", 
-            Timestamp = today.AddDays(-1).AddHours(10) 
+            Timestamp = today.AddDays(-1).AddHours(10),
+            SessionId = _testSessionId
         };
 
         context.CoffeeEntries.AddRange(todayEntries);
@@ -174,9 +175,9 @@ public class CoffeeEntryServiceTests
         // Add test data for different dates
         var entries = new List<CoffeeEntry>
         {
-            new() { CoffeeType = "Latte", Size = "Medium", Timestamp = targetDate.AddHours(9) },
-            new() { CoffeeType = "Espresso", Size = "Small", Timestamp = targetDate.AddHours(14) },
-            new() { CoffeeType = "Americano", Size = "Large", Timestamp = DateTime.Today.AddHours(10) }
+            new() { CoffeeType = "Latte", Size = "Medium", Timestamp = targetDate.AddHours(9), SessionId = _testSessionId },
+            new() { CoffeeType = "Espresso", Size = "Small", Timestamp = targetDate.AddHours(14), SessionId = _testSessionId },
+            new() { CoffeeType = "Americano", Size = "Large", Timestamp = DateTime.Today.AddHours(10), SessionId = _testSessionId }
         };
 
         context.CoffeeEntries.AddRange(entries);
