@@ -15,7 +15,10 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
-builder.AddServiceDefaults();
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.AddServiceDefaults();
+}
 
 // Add services to the container.
 // Ensure data directory exists and create absolute path for SQLite database
@@ -226,3 +229,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Make Program class accessible for testing
+public partial class Program { }

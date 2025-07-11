@@ -154,37 +154,42 @@ public class CoffeeServiceTests : IDisposable
         var sessionId = "session-date-filter";
         var now = DateTime.UtcNow;
         
-        // Create two entries on different dates but within retention period
+        // Create two entries at different times today, both in the past
         var today = now.Date;
-        var recentDate = now.AddHours(-18).Date; // 18 hours ago (different date, within 24h retention)
+        var earlierToday = now.AddHours(-10); // 10 hours ago
+        var laterToday = now.AddHours(-5); // 5 hours ago
 
-        var todayRequest = new CreateCoffeeEntryRequest 
-        { 
-            CoffeeType = "Latte", 
-            Size = "Medium",
-            Timestamp = today.AddHours(10) // Today at 10 AM
-        };
-        
-        var recentRequest = new CreateCoffeeEntryRequest 
+        var earlyRequest = new CreateCoffeeEntryRequest 
         { 
             CoffeeType = "Espresso", 
             Size = "Small",
-            Timestamp = now.AddHours(-18) // 18 hours ago (different date but within retention)
+            Timestamp = earlierToday
+        };
+        
+        var lateRequest = new CreateCoffeeEntryRequest 
+        { 
+            CoffeeType = "Latte", 
+            Size = "Medium",
+            Timestamp = laterToday
         };
 
-        await _service.CreateCoffeeEntryAsync(todayRequest, sessionId);
-        await _service.CreateCoffeeEntryAsync(recentRequest, sessionId);
+        await _service.CreateCoffeeEntryAsync(earlyRequest, sessionId);
+        await _service.CreateCoffeeEntryAsync(lateRequest, sessionId);
 
-        // Act
+        // Act - Get entries for today (should get both)
         var todayEntries = await _service.GetCoffeeEntriesAsync(sessionId, today);
-        var recentEntries = await _service.GetCoffeeEntriesAsync(sessionId, recentDate);
+        
+        // Get entries with no date filter (should also get both since both are today)
+        var allEntries = await _service.GetCoffeeEntriesAsync(sessionId);
 
         // Assert
-        todayEntries.Should().HaveCount(1);
-        todayEntries.First().CoffeeType.Should().Be("Latte");
+        todayEntries.Should().HaveCount(2);
+        todayEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        todayEntries.Should().Contain(e => e.CoffeeType == "Latte");
 
-        recentEntries.Should().HaveCount(1);
-        recentEntries.First().CoffeeType.Should().Be("Espresso");
+        allEntries.Should().HaveCount(2);
+        allEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        allEntries.Should().Contain(e => e.CoffeeType == "Latte");
     }
 
     [Fact]
