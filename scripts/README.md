@@ -43,6 +43,13 @@ This directory contains scripts to automatically create GitHub issues for the Co
 - **PowerShell**: `create-all-github-issues.ps1`
 - **Supports**: Selective epic creation or all at once
 
+### Single Issue Script
+
+#### Individual Issues
+- **PowerShell**: `create-single-issue.ps1`
+- **Bash**: `create-single-issue.sh`
+- **Supports**: Creating a single specific issue by number
+
 ## Usage Examples
 
 ### PowerShell (Windows)
@@ -68,6 +75,9 @@ cd CoffeeTrackerTDD
 .\scripts\create-all-github-issues.ps1 -Epic epic-2
 .\scripts\create-all-github-issues.ps1 -Epic epic-3
 .\scripts\create-all-github-issues.ps1 -Epic all
+
+# Create a single specific issue
+.\scripts\create-single-issue.ps1 -IssueNumber 12  # Create issue #012 (Swagger/OpenAPI Documentation)
 ```
 
 ### Bash (Linux/macOS)
@@ -87,6 +97,9 @@ chmod +x scripts/*.sh
 
 # Create Epic 3 issues only
 ./scripts/create-epic-3-github-issues.sh
+
+# Create a single specific issue
+./scripts/create-single-issue.sh 12  # Create issue #012 (Swagger/OpenAPI Documentation)
 ```
 
 ## Issue Structure
@@ -139,6 +152,12 @@ Issues are automatically created with:
    Permission denied: ./scripts/create-github-issues.sh
    ```
    **Solution**: Make the script executable: `chmod +x scripts/*.sh`
+   
+3. **Invalid issue number**
+   ```
+   Error: Issue number must be between 1 and 17
+   ```
+   **Solution**: Specify a valid issue number between 1 and 17.
 
 3. **Repository not found**
    ```
