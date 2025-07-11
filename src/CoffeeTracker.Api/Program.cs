@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using CoffeeTracker.Api.Data;
+using CoffeeTracker.Api.Extensions;
 using CoffeeTracker.Api.Middleware;
 using CoffeeTracker.Api.Services;
 using CoffeeTracker.Api.Services.Background;
@@ -115,6 +116,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<ICoffeeEntryRepository, CoffeeEntryRepository>();
+builder.Services.AddScoped<ICoffeeValidationService, CoffeeValidationService>();
 builder.Services.AddHostedService<SessionCleanupService>();
 
 var app = builder.Build();
@@ -144,6 +147,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowWebApp");
 
 app.UseCookiePolicy();
+app.UseGlobalExceptionHandler();
 app.UseAnonymousSession();
 
 app.UseAuthentication();
