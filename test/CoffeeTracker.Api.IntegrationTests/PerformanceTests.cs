@@ -48,8 +48,11 @@ public class PerformanceTests : ApiIntegrationTestBase
     {
         // Arrange
         const int entryCount = 100;
-        var sessionId = "performance-test-session";
+        var sessionId = CreateTestSessionId("perf");
         var client = CreateClientWithSession(sessionId);
+        
+        // Array of valid coffee types
+        var validCoffeeTypes = new[] { "Espresso", "Americano", "Latte", "Cappuccino", "Mocha" };
         
         // Create a large dataset in the database
         using (var scope = Factory.Services.CreateScope())
@@ -62,7 +65,7 @@ public class PerformanceTests : ApiIntegrationTestBase
             {
                 testEntries.Add(new CoffeeEntry
                 {
-                    CoffeeType = $"Coffee Type {i % 5}",
+                    CoffeeType = validCoffeeTypes[i % validCoffeeTypes.Length],
                     Size = i % 3 == 0 ? "Small" : i % 3 == 1 ? "Medium" : "Large",
                     Source = i % 4 == 0 ? "Home" : $"Coffee Shop {i % 4}",
                     SessionId = sessionId,
@@ -97,14 +100,17 @@ public class PerformanceTests : ApiIntegrationTestBase
         var sessionIds = new List<string>();
         
         // Create multiple clients with different session IDs
+        // Array of valid coffee types
+        var validCoffeeTypes = new[] { "Espresso", "Americano", "Latte", "Cappuccino", "Mocha", "Macchiato", "FlatWhite", "BlackCoffee" };
+        
         for (int i = 0; i < concurrentSessions; i++)
         {
-            var sessionId = $"concurrent-session-{i}";
+            var sessionId = CreateTestSessionId($"conc-{i}");
             sessionIds.Add(sessionId);
             var client = CreateClientWithSession(sessionId);
             
             var request = TestDataBuilder.CreateCoffeeEntryRequest(
-                coffeeType: $"Coffee {i}",
+                coffeeType: validCoffeeTypes[i % validCoffeeTypes.Length],
                 size: i % 3 == 0 ? "Small" : i % 3 == 1 ? "Medium" : "Large",
                 source: $"Shop {i}"
             );

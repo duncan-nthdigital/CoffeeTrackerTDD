@@ -60,7 +60,14 @@ public class SessionService : ISessionService
         context.Response.Cookies.Append(SessionCookieName, newSessionId, cookieOptions);
         
         // For integration testing: also add session ID as a response header
-        context.Response.Headers.TryAdd("X-Session-Id", newSessionId);
+        try
+        {
+            context.Response.Headers.TryAdd("X-Session-Id", newSessionId);
+        }
+        catch
+        {
+            // Headers might not be available in unit tests - ignore
+        }
         
         _logger.LogInformation("Created new session ID: {SessionId}", newSessionId);
         

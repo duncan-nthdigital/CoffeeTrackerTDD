@@ -118,6 +118,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 // Register application services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
+builder.Services.AddScoped<ICoffeeService, CoffeeService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<ICoffeeEntryRepository, CoffeeEntryRepository>();
 builder.Services.AddScoped<ICoffeeValidationService, CoffeeValidationService>();

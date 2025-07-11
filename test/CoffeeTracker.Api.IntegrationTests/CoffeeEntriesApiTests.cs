@@ -117,7 +117,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
         // Arrange - Add max allowed entries to the database
         const int maxEntries = 10; // As defined in CoffeeService
         
-        var sessionId = "test-session-id-limit";
+        var sessionId = CreateTestSessionId("limit");
         var client = CreateClientWithSession(sessionId);
         
         // Create entries up to the limit
@@ -156,7 +156,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
         // Arrange - Create high caffeine entries
         const int maxDailyCaffeine = 1000; // As defined in CoffeeService
         
-        var sessionId = "test-session-id-caffeine";
+        var sessionId = CreateTestSessionId("caffeine");
         var client = CreateClientWithSession(sessionId);
         
         // Create high caffeine drinks first (multiple large coffees)
@@ -167,8 +167,9 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
             TestDataBuilder.CreateCoffeeEntryRequest("FlatWhite", "Large"), // ~169mg
             TestDataBuilder.CreateCoffeeEntryRequest("Espresso", "Large"), // ~117mg
             TestDataBuilder.CreateCoffeeEntryRequest("BlackCoffee", "Large"), // ~124mg
-            TestDataBuilder.CreateCoffeeEntryRequest("Latte", "Large") // ~104mg
-            // Total: ~826mg caffeine
+            TestDataBuilder.CreateCoffeeEntryRequest("Latte", "Large"), // ~104mg
+            TestDataBuilder.CreateCoffeeEntryRequest("Americano", "Large") // ~156mg
+            // Total: ~982mg caffeine
         };
         
         foreach (var drink in highCaffeineDrinks)
@@ -180,10 +181,18 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
         // Act - Try to add another high caffeine drink that would exceed the limit
         var finalRequest = TestDataBuilder.CreateCoffeeEntryRequest(
             coffeeType: "Americano", 
-            size: "Large" // ~156mg which would bring total to 982mg
+            size: "Large" // ~156mg which would bring total to 1138mg and exceed 1000mg limit
         );
         
+        // Debug logging
+        Console.WriteLine($"About to send final request: {System.Text.Json.JsonSerializer.Serialize(finalRequest)}");
+        
         var finalResponse = await client.PostAsync("/api/coffee-entries", CreateJsonContent(finalRequest));
+        
+        // Debug logging
+        Console.WriteLine($"Final response status: {finalResponse.StatusCode}");
+        var finalResponseContent = await finalResponse.Content.ReadAsStringAsync();
+        Console.WriteLine($"Final response content: {finalResponseContent}");
         
         // Assert
         finalResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
@@ -198,8 +207,8 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task CreateCoffeeEntry_WithDifferentSessions_IsolatesData()
     {
         // Arrange
-        var sessionId1 = "test-session-1";
-        var sessionId2 = "test-session-2";
+        var sessionId1 = CreateTestSessionId("1");
+        var sessionId2 = CreateTestSessionId("2");
         
         var client1 = CreateClientWithSession(sessionId1);
         var client2 = CreateClientWithSession(sessionId2);
@@ -362,8 +371,8 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task GetCoffeeEntries_WithDifferentSessions_ReturnsOnlySessionData()
     {
         // Arrange
-        var sessionId1 = "test-session-isolation-1";
-        var sessionId2 = "test-session-isolation-2";
+        var sessionId1 = CreateTestSessionId("isolation-1");
+        var sessionId2 = CreateTestSessionId("isolation-2");
         
         // Add entries for both sessions
         using (var scope = Factory.Services.CreateScope())
