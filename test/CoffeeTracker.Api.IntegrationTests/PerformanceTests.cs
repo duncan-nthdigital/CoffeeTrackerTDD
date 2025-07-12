@@ -91,6 +91,12 @@ public class PerformanceTests : ApiIntegrationTestBase
         entries.Should().HaveCount(entryCount);
     }
     
+    /// <summary>
+    /// Tests that the API can handle multiple concurrent requests from different sessions correctly.
+    /// This test validates session isolation and database concurrency handling.
+    /// Note: May take 2+ seconds due to SQLite write lock contention during concurrent operations,
+    /// but this demonstrates proper serialization without data corruption or test failures.
+    /// </summary>
     [Fact]
     public async Task ConcurrentRequests_HandleMultipleSessionsCorrectly()
     {
