@@ -121,7 +121,7 @@ public class PerformanceTests : ApiIntegrationTestBase
         
         // Act
         var stopwatch = Stopwatch.StartNew();
-        await Task.WhenAll(tasks);
+        var results = await Task.WhenAll(tasks);
         stopwatch.Stop();
         
         // Assert
@@ -130,7 +130,6 @@ public class PerformanceTests : ApiIntegrationTestBase
         averageTimePerRequest.Should().BeLessThan(PerformanceThresholdMs);
         
         // Check that all responses were successful
-        var results = await Task.WhenAll(tasks); // Wait for all tasks to complete first
         foreach (var response in results)
         {
             response.EnsureSuccessStatusCode();

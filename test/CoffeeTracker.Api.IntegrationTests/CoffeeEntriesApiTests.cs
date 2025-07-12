@@ -59,7 +59,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     [InlineData("", "Medium", "Coffee type is required")]
     [InlineData("Latte", null, "Size is required")]
     [InlineData("Latte", "", "Size is required")]
-    [InlineData("ThisCoffeeTypeIsTooLongAndExceedsFiftyCharactersLimitForValidation", "Medium", "Coffee type length")]
+    [InlineData("ThisCoffeeTypeIsTooLongAndExceedsFiftyCharactersLimitForValidation", "Medium", "Coffee type cannot exceed")]
     public async Task CreateCoffeeEntry_WithInvalidData_Returns400BadRequest(string coffeeType, string size, string expectedError)
     {
         // Arrange
