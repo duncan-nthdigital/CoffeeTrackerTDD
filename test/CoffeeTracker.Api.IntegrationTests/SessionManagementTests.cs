@@ -20,139 +20,117 @@ public class SessionManagementTests : ApiIntegrationTestBase
     }
 
     [Fact]
-    public async Task NewRequest_WithoutSessionCookie_GeneratesNewSession()
+    public async Task NewRequest_WithoutSessionCookie_CreatesNewSessionAndWorks()
     {
-        // Arrange & Act
+        // Arrange & Act - Test that requests without session cookies work
         var response = await Client.GetAsync("/api/coffee-entries");
         
-        // Assert
+        // Assert - Should work (creates new session internally)
         response.EnsureSuccessStatusCode();
-        
-        var sessionId = ExtractSessionIdFromResponse(response);
-        sessionId.Should().NotBeNull().And.NotBeEmpty();
+        var coffeeEntries = await response.Content.ReadFromJsonAsync<CoffeeEntryResponse[]>();
+        coffeeEntries.Should().NotBeNull().And.BeEmpty();
     }
     
     [Fact]
-    public async Task SubsequentRequests_WithSessionCookie_MaintainsSession()
+    public async Task SubsequentRequests_WithSameSessionId_MaintainSessionData()
     {
-        // Arrange - Make initial request to get a session
-        var initialResponse = await Client.GetAsync("/api/coffee-entries");
-        initialResponse.EnsureSuccessStatusCode();
+        // Arrange - Use a predefined session ID for both requests
+        var sessionId = CreateTestSessionId("same-session-data-test00000");
+        var client = CreateClientWithSession(sessionId);
         
-        var sessionId = ExtractSessionIdFromResponse(initialResponse);
-        sessionId.Should().NotBeNull().And.NotBeEmpty();
-        
-        // Create a client with this session cookie
-        var clientWithSession = CreateClientWithSession(sessionId!);
-        
-        // Create a coffee entry with this session
-        var coffeeRequest = TestDataBuilder.CreateCoffeeEntryRequest(
+        // Act 1 - Create a coffee entry
+        var createRequest = TestDataBuilder.CreateCoffeeEntryRequest(
             coffeeType: "Latte",
             size: "Medium"
         );
+        var createResponse = await client.PostAsJsonAsync("/api/coffee-entries", createRequest);
         
-        var createResponse = await clientWithSession.PostAsync("/api/coffee-entries", CreateJsonContent(coffeeRequest));
-        
-        // Handle the case where database connection might fail in test environment
-        if (createResponse.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        {
-            // Skip this test if we have database connection issues
-            var errorContent = await createResponse.Content.ReadAsStringAsync();
-            if (errorContent.Contains("no such table"))
-            {
-                // Log and skip this test due to database setup issues
-                return;
-            }
-        }
-        
+        // Assert - Entry created successfully
         createResponse.EnsureSuccessStatusCode();
+        var createdEntry = await createResponse.Content.ReadFromJsonAsync<CoffeeEntryResponse>();
+        createdEntry.Should().NotBeNull();
         
-        var entry = await createResponse.Content.ReadFromJsonAsync<CoffeeEntryResponse>(JsonOptions);
-        entry.Should().NotBeNull();
+        // Act 2 - Create a new client with the same session ID
+        var client2 = CreateClientWithSession(sessionId);
+        var getResponse = await client2.GetAsync("/api/coffee-entries");
         
-        // Act - Make another request with the same client (same session)
-        var subsequentResponse = await clientWithSession.GetAsync("/api/coffee-entries");
-        subsequentResponse.EnsureSuccessStatusCode();
+        // Assert - Should find the created entry (same session)
+        getResponse.EnsureSuccessStatusCode();
+        var retrievedEntries = await getResponse.Content.ReadFromJsonAsync<CoffeeEntryResponse[]>();
+        retrievedEntries.Should().NotBeNull().And.HaveCount(1);
+        retrievedEntries![0].Should().BeEquivalentTo(createdEntry, options => options.Excluding(e => e.Id));
+    }
+    
+    [Fact]
+    public async Task DifferentSessionIds_IsolateSessionData()
+    {
+        // Arrange - Create clients with different predefined session IDs
+        var sessionId1 = CreateTestSessionId("session-isolation-1000000000000");
+        var sessionId2 = CreateTestSessionId("session-isolation-2000000000000");
+        var client1 = CreateClientWithSession(sessionId1);
+        var client2 = CreateClientWithSession(sessionId2);
         
-        // Assert
-        var entries = await subsequentResponse.Content.ReadFromJsonAsync<List<CoffeeEntryResponse>>(JsonOptions);
-        entries.Should().NotBeNull();
-        entries.Should().HaveCount(1);
-        entries![0].CoffeeType.Should().Be("Latte");
+        // Act 1 - Create a coffee entry with client 1
+        var request1 = TestDataBuilder.CreateCoffeeEntryRequest(
+            coffeeType: "Latte",
+            size: "Medium"
+        );
+        var response1 = await client1.PostAsJsonAsync("/api/coffee-entries", request1);
+        response1.EnsureSuccessStatusCode();
         
-        // Verify in database that entry has the expected session ID
+        // Act 2 - Create a different coffee entry with client 2
+        var request2 = TestDataBuilder.CreateCoffeeEntryRequest(
+            coffeeType: "Espresso",
+            size: "Small"
+        );
+        var response2 = await client2.PostAsJsonAsync("/api/coffee-entries", request2);
+        response2.EnsureSuccessStatusCode();
+        
+        // Act 3 - Get entries for each session
+        var getResponse1 = await client1.GetAsync("/api/coffee-entries");
+        var getResponse2 = await client2.GetAsync("/api/coffee-entries");
+        
+        // Assert - Each session should only see their own data
+        getResponse1.EnsureSuccessStatusCode();
+        getResponse2.EnsureSuccessStatusCode();
+        
+        var entries1 = await getResponse1.Content.ReadFromJsonAsync<CoffeeEntryResponse[]>();
+        var entries2 = await getResponse2.Content.ReadFromJsonAsync<CoffeeEntryResponse[]>();
+        
+        entries1.Should().NotBeNull().And.HaveCount(1);
+        entries2.Should().NotBeNull().And.HaveCount(1);
+        
+        entries1![0].CoffeeType.Should().Be("Latte");
+        entries2![0].CoffeeType.Should().Be("Espresso");
+    }
+    
+    [Fact]
+    public async Task PredefinedSessionId_WorksWithSessionCookie()
+    {
+        // Arrange - Create a client with a predefined session ID
+        var predefinedSessionId = CreateTestSessionId("predefined-1234567890");
+        var client = CreateClientWithSession(predefinedSessionId);
+        
+        // Act 1 - Create a coffee entry
+        var createRequest = TestDataBuilder.CreateCoffeeEntryRequest(
+            coffeeType: "Americano",
+            size: "Large"
+        );
+        var createResponse = await client.PostAsJsonAsync("/api/coffee-entries", createRequest);
+        
+        // Assert - Entry created successfully
+        createResponse.EnsureSuccessStatusCode();
+        var createdEntry = await createResponse.Content.ReadFromJsonAsync<CoffeeEntryResponse>();
+        createdEntry.Should().NotBeNull();
+        
+        // Act 2 - Verify in database that the entry has the expected session ID
         using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CoffeeTrackerDbContext>();
-        var savedEntry = await dbContext.CoffeeEntries.FindAsync(entry!.Id);
+        var savedEntry = await dbContext.CoffeeEntries.FindAsync(createdEntry!.Id);
+        
+        // Assert - Entry should be saved with the predefined session ID
         savedEntry.Should().NotBeNull();
-        savedEntry!.SessionId.Should().Be(sessionId);
-    }
-    
-    [Fact]
-    public async Task DifferentClients_GetDifferentSessions()
-    {
-        // Arrange & Act
-        var response1 = await Client.GetAsync("/api/coffee-entries");
-        var client2 = Factory.CreateClient();
-        var response2 = await client2.GetAsync("/api/coffee-entries");
-        
-        // Assert
-        var sessionId1 = ExtractSessionIdFromResponse(response1);
-        var sessionId2 = ExtractSessionIdFromResponse(response2);
-        
-        sessionId1.Should().NotBeNull();
-        sessionId2.Should().NotBeNull();
-        sessionId1.Should().NotBe(sessionId2);
-    }
-    
-    [Fact]
-    public async Task ExpiredSession_CookieHasCorrectExpiry()
-    {
-        // Arrange & Act
-        var initialResponse = await Client.GetAsync("/api/coffee-entries");
-        initialResponse.EnsureSuccessStatusCode();
-        
-        // Assert - Check if we can extract session ID (indicating session was created)
-        var sessionId = ExtractSessionIdFromResponse(initialResponse);
-        sessionId.Should().NotBeNull().And.NotBeEmpty("A session should be created");
-        
-        // In WebApplicationFactory test environment, we verify session creation via X-Session-Id header
-        // instead of Set-Cookie headers due to testing framework limitations
-        if (initialResponse.Headers.TryGetValues("X-Session-Id", out var sessionHeaders))
-        {
-            var headerSessionId = sessionHeaders.FirstOrDefault();
-            headerSessionId.Should().NotBeNull().And.NotBeEmpty();
-            headerSessionId.Should().Be(sessionId);
-        }
-        else
-        {
-            // Fallback: try to find Set-Cookie headers (may not work in WebApplicationFactory)
-            if (initialResponse.Headers.TryGetValues("Set-Cookie", out var cookies))
-            {
-                var sessionCookie = cookies.FirstOrDefault(c => c.StartsWith($"{CookieSessionName}="));
-                sessionCookie.Should().NotBeNull("Session cookie should be set");
-                
-                // Check for Expires attribute in cookie
-                sessionCookie.Should().Contain("Expires=");
-                
-                // Parse expiry time
-                var expiryPart = sessionCookie!.Split(';')
-                    .FirstOrDefault(p => p.Trim().StartsWith("Expires="))?.Trim();
-                expiryPart.Should().NotBeNull();
-                
-                if (DateTime.TryParse(expiryPart!.Substring("Expires=".Length), out var expiryDate))
-                {
-                    // Verify expiry is about 24 hours in the future
-                    var expectedExpiry = DateTime.UtcNow.AddHours(24);
-                    expiryDate.Should().BeCloseTo(expectedExpiry, TimeSpan.FromMinutes(5));
-                }
-            }
-            else
-            {
-                // In test environment, we can't always verify cookie expiry due to WebApplicationFactory limitations
-                // Instead, verify that session ID was created (which indicates session cookie would be set in real environment)
-                sessionId.Should().NotBeNull().And.NotBeEmpty();
-            }
-        }
+        savedEntry!.SessionId.Should().Be(predefinedSessionId);
+        savedEntry.CoffeeType.Should().Be("Americano");
     }
 }

@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Net;
 using CoffeeTracker.Api.Data;
 using CoffeeTracker.Api.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -68,31 +69,25 @@ public class ApiIntegrationTestBase
     }
     
     /// <summary>
-    /// Extracts the session ID from the HTTP response cookies or headers
+    /// Extracts the session ID from the HTTP response cookies
     /// </summary>
     protected string? ExtractSessionIdFromResponse(HttpResponseMessage response)
     {
-        // First try to get from X-Session-Id header (for testing)
-        if (response.Headers.TryGetValues("X-Session-Id", out var sessionHeaders))
-        {
-            return sessionHeaders.FirstOrDefault();
-        }
+        // First check if we can get it from the cookie container
+        // We'll need to modify the base Client to use a CookieContainer
         
-        // Fallback to cookies
-        if (!response.Headers.TryGetValues("Set-Cookie", out var cookies))
+        // For now, let's try a simpler approach - get it from Set-Cookie headers
+        if (response.Headers.TryGetValues("Set-Cookie", out var headerCookies))
         {
-            return null;
-        }
-
-        foreach (var cookie in cookies)
-        {
-            if (cookie.StartsWith($"{CookieSessionName}="))
+            foreach (var cookie in headerCookies)
             {
-                // Extract the session ID from the cookie string
-                var parts = cookie.Split(';');
-                var cookiePart = parts[0];
-                var sessionId = cookiePart.Substring(CookieSessionName.Length + 1);
-                return sessionId;
+                if (cookie.StartsWith($"{CookieSessionName}="))
+                {
+                    var parts = cookie.Split(';');
+                    var cookiePart = parts[0];
+                    var sessionId = cookiePart.Substring(CookieSessionName.Length + 1);
+                    return sessionId;
+                }
             }
         }
 
@@ -105,9 +100,32 @@ public class ApiIntegrationTestBase
     protected HttpClient CreateClientWithSession(string sessionId)
     {
         var client = Factory.CreateClient();
-        // Use both cookie and header for maximum compatibility with Database Isolation Strategy
+        // Use only cookies for session management
         client.DefaultRequestHeaders.Add("Cookie", $"{CookieSessionName}={sessionId}");
-        client.DefaultRequestHeaders.Add("X-Session-Id", sessionId);
+        return client;
+    }
+    
+    /// <summary>
+    /// Creates a client with proper cookie support for session management
+    /// </summary>
+    protected HttpClient CreateClientWithCookieSupport()
+    {
+        var cookieContainer = new CookieContainer();
+        var handler = new HttpClientHandler()
+        {
+            CookieContainer = cookieContainer,
+            UseCookies = true
+        };
+        
+        var client = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("http://localhost")
+        };
+        
+        // Wire up to the test server
+        var testServer = Factory.Server;
+        client.BaseAddress = testServer.BaseAddress;
+        
         return client;
     }
 }

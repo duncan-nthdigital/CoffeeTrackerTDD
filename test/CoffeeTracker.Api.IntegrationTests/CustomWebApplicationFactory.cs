@@ -1,12 +1,10 @@
 using CoffeeTracker.Api.Data;
-using CoffeeTracker.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using System;
 using Xunit;
 
@@ -19,26 +17,58 @@ namespace CoffeeTracker.Api.IntegrationTests
     public class IntegrationTestCollection : ICollectionFixture<CustomWebApplicationFactory> { }
 
     /// <summary>
-    /// Custom WebApplicationFactory that overrides configuration for testing
+    /// Custom WebApplicationFactory that uses the real application logic with a test database
     /// </summary>
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IDisposable
     {
         private static readonly object _lock = new object();
-        private static SqliteConnection? _staticConnection;
+        private static string? _testDatabasePath;
         private static bool _databaseInitialized = false;
         
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            // Configure the web host to use testing environment
+            // Set testing environment
             builder.UseEnvironment("Testing");
             
-            // Replace services with test versions
+            // Only override the database path to use a test database
+            // Let all other services use the real production configuration
+            builder.ConfigureAppConfiguration((context, config) =>
+            {
+                // Ensure we have a test database path
+                lock (_lock)
+                {
+                    if (_testDatabasePath == null)
+                    {
+                        // Use the same logic as Program.cs to find the solution root and data directory
+                        var currentDirectory = Directory.GetCurrentDirectory();
+                        var solutionRoot = Directory.GetParent(currentDirectory)?.Parent?.FullName 
+                            ?? currentDirectory;
+                        var dataDirectory = Path.Combine(solutionRoot, "data");
+                        Directory.CreateDirectory(dataDirectory);
+                        _testDatabasePath = Path.Combine(dataDirectory, "coffee-tracker-test.db");
+                        
+                        // Clean up any existing test database to start fresh
+                        if (File.Exists(_testDatabasePath))
+                        {
+                            File.Delete(_testDatabasePath);
+                        }
+                    }
+                }
+                
+                // Override only the database path in configuration
+                // This way the real Program.cs logic handles the database setup
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["TestDatabasePath"] = _testDatabasePath
+                });
+            });
+            
+            // Minimal service override - only replace database configuration
             builder.ConfigureServices(services =>
             {
-                // Remove the existing DbContext registration completely
+                // Remove the existing DbContext registration and replace with test database
                 var descriptors = services.Where(d => d.ServiceType == typeof(DbContextOptions<CoffeeTrackerDbContext>) ||
-                                                     d.ServiceType == typeof(CoffeeTrackerDbContext) ||
-                                                     d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))
+                                                     d.ServiceType == typeof(CoffeeTrackerDbContext))
                                          .ToList();
 
                 foreach (var descriptor in descriptors)
@@ -46,33 +76,11 @@ namespace CoffeeTracker.Api.IntegrationTests
                     services.Remove(descriptor);
                 }
 
-                // Replace the session service with test version for consistent session handling
-                var sessionServiceDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ISessionService));
-                if (sessionServiceDescriptor != null)
+                // Re-add DbContext with test database path - keeping all other logic the same
+                services.AddDbContext<CoffeeTrackerDbContext>(options =>
                 {
-                    services.Remove(sessionServiceDescriptor);
-                }
-                services.AddScoped<ISessionService, TestSessionService>();
-
-                // Ensure we have a persistent connection for all tests
-                lock (_lock)
-                {
-                    if (_staticConnection == null)
-                    {
-                        _staticConnection = new SqliteConnection("DataSource=:memory:");
-                        _staticConnection.Open(); // Keep the connection open for the in-memory database
-                    }
-                }
-
-                // Add the new DbContext with the shared in-memory connection
-                services.AddSingleton<DbContextOptions<CoffeeTrackerDbContext>>(provider =>
-                {
-                    var optionsBuilder = new DbContextOptionsBuilder<CoffeeTrackerDbContext>();
-                    optionsBuilder.UseSqlite(_staticConnection);
-                    return optionsBuilder.Options;
+                    options.UseSqlite($"Data Source={_testDatabasePath}");
                 });
-
-                services.AddScoped<CoffeeTrackerDbContext>();
 
                 // Ensure database is created only once
                 lock (_lock)
@@ -87,7 +95,7 @@ namespace CoffeeTracker.Api.IntegrationTests
                             // Ensure database and tables are created
                             db.Database.EnsureCreated();
                             
-                            // Force initialization to verify tables exist
+                            // Verify database is working
                             var tableExists = db.Database.CanConnect();
                             if (!tableExists)
                             {
@@ -108,9 +116,11 @@ namespace CoffeeTracker.Api.IntegrationTests
         {
             lock (_lock)
             {
-                if (_staticConnection != null && _databaseInitialized)
+                if (_testDatabasePath != null && _databaseInitialized && File.Exists(_testDatabasePath))
                 {
-                    using var command = _staticConnection.CreateCommand();
+                    using var connection = new SqliteConnection($"Data Source={_testDatabasePath}");
+                    connection.Open();
+                    using var command = connection.CreateCommand();
                     command.CommandText = @"
                         DELETE FROM CoffeeEntries;
                         DELETE FROM CoffeeShops;
@@ -134,8 +144,8 @@ namespace CoffeeTracker.Api.IntegrationTests
         {
             if (disposing)
             {
-                // Don't dispose the static connection here as it's shared across all tests
-                // It will be disposed when the application domain unloads
+                // Individual test cleanup - do not delete the database file here
+                // as it's shared across all tests in the collection
             }
             base.Dispose(disposing);
         }
@@ -147,9 +157,18 @@ namespace CoffeeTracker.Api.IntegrationTests
         {
             lock (_lock)
             {
-                _staticConnection?.Close();
-                _staticConnection?.Dispose();
-                _staticConnection = null;
+                if (_testDatabasePath != null && File.Exists(_testDatabasePath))
+                {
+                    try
+                    {
+                        File.Delete(_testDatabasePath);
+                    }
+                    catch
+                    {
+                        // Ignore cleanup errors
+                    }
+                }
+                _testDatabasePath = null;
                 _databaseInitialized = false;
             }
         }

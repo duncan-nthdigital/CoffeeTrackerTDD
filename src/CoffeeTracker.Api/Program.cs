@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.Extensions.Options;
+using CoffeeTracker.Api.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,8 +98,30 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Add controllers
-builder.Services.AddControllers();
+// Add controllers with Problem Details support
+builder.Services.AddProblemDetails();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+})
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var problemDetails = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(context.ModelState)
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "One or more validation errors occurred.",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = "See the errors property for details.",
+                Instance = context.HttpContext.Request.Path
+            };
+
+            var result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problemDetails);
+            result.ContentTypes.Add("application/problem+json");
+            return result;
+        };
+    });
 
 // TODO: Add FluentValidation
 // builder.Services.AddFluentValidationAutoValidation();
@@ -110,7 +133,9 @@ builder.Services.AddControllers();
 // Configure session management
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.CheckConsentNeeded = context => true;
+    // Allow essential cookies (like session cookies) without consent
+    // For anonymous tracking, we consider session cookies essential for app functionality
+    options.CheckConsentNeeded = context => false; // Allow essential cookies
     options.MinimumSameSitePolicy = SameSiteMode.Lax;
     options.Secure = CookieSecurePolicy.SameAsRequest;
 });

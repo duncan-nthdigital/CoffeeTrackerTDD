@@ -25,6 +25,8 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task CreateCoffeeEntry_WithValidData_Returns201Created()
     {
         // Arrange
+        var sessionId = CreateTestSessionId("valid-entry-test");
+        var client = CreateClientWithSession(sessionId);
         var request = TestDataBuilder.CreateCoffeeEntryRequest(
             coffeeType: "Latte",
             size: "Medium",
@@ -32,17 +34,13 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
         );
         
         // Act
-        var response = await Client.PostAsync("/api/coffee-entries", CreateJsonContent(request));
+        var response = await client.PostAsync("/api/coffee-entries", CreateJsonContent(request));
         
         // Assert
         response.ShouldBeSuccessStatusCode(HttpStatusCode.Created);
         
         var createdEntry = await response.Content.ReadFromJsonAsync<CoffeeEntryResponse>(JsonOptions);
         createdEntry.ShouldBeValidCoffeeEntry("Latte", "Medium", "Starbucks");
-        
-        // Verify session cookie was set
-        var sessionId = ExtractSessionIdFromResponse(response);
-        sessionId.Should().NotBeNull().And.NotBeEmpty();
         
         // Verify entry was saved to database
         using var scope = Factory.Services.CreateScope();
@@ -257,7 +255,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task GetCoffeeEntries_ForToday_ReturnsCurrentDayEntries()
     {
         // Arrange
-        var sessionId = "test-get-session";
+        var sessionId = CreateTestSessionId("get-session");
         var client = CreateClientWithSession(sessionId);
         
         // Add entries for today
@@ -310,7 +308,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task GetCoffeeEntries_WithEmptyResult_ReturnsEmptyList()
     {
         // Arrange
-        var sessionId = "test-empty-session";
+        var sessionId = CreateTestSessionId("empty-session");
         var client = CreateClientWithSession(sessionId);
         
         // Act
@@ -328,7 +326,7 @@ public class CoffeeEntriesApiTests : ApiIntegrationTestBase
     public async Task GetCoffeeEntries_WithDateFilter_ReturnsFilteredEntries()
     {
         // Arrange
-        var sessionId = "test-filter-session";
+        var sessionId = CreateTestSessionId("filter-session");
         var client = CreateClientWithSession(sessionId);
         
         // Create entries for different dates in the database

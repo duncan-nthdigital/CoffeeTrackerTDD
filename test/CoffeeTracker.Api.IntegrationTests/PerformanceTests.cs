@@ -149,7 +149,7 @@ public class PerformanceTests : ApiIntegrationTestBase
                 var sessionId = sessionIds[i];
                 var entry = entries.FirstOrDefault(e => e.SessionId == sessionId);
                 entry.Should().NotBeNull($"Entry for session {sessionId} should exist");
-                entry!.CoffeeType.Should().Be($"Coffee {i}");
+                entry!.CoffeeType.Should().Be(validCoffeeTypes[i % validCoffeeTypes.Length]);
                 entry.Source.Should().Be($"Shop {i}");
             }
         }

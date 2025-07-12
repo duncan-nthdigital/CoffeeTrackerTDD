@@ -25,6 +25,17 @@ namespace CoffeeTracker.Api.IntegrationTests
             {
                 _logger.LogWarning("TestSessionService: Cookie '{Key}' = '{Value}'", cookie.Key, cookie.Value);
             }
+            
+            // Debug headers too
+            _logger.LogWarning("TestSessionService: Processing request with {HeaderCount} headers", context.Request.Headers.Count);
+            if (context.Request.Headers.TryGetValue("X-Session-Id", out var sessionHeaders))
+            {
+                _logger.LogWarning("TestSessionService: Found X-Session-Id header with values: {Values}", string.Join(", ", sessionHeaders.ToArray()));
+            }
+            else
+            {
+                _logger.LogWarning("TestSessionService: No X-Session-Id header found");
+            }
 
             // Check if there's already a session ID set for testing
             if (context.Items.TryGetValue("SessionId", out var sessionIdFromItems) && sessionIdFromItems is string sessionId)
@@ -34,9 +45,9 @@ namespace CoffeeTracker.Api.IntegrationTests
             }
 
             // Check for existing cookie FIRST (this is what tests use)
-            if (context.Request.Cookies.TryGetValue("SessionId", out var cookieSessionId))
+            if (context.Request.Cookies.TryGetValue("coffee-session", out var cookieSessionId))
             {
-                _logger.LogWarning("TestSessionService: Found SessionId cookie with value '{SessionId}'", cookieSessionId);
+                _logger.LogWarning("TestSessionService: Found coffee-session cookie with value '{SessionId}'", cookieSessionId);
                 if (!string.IsNullOrEmpty(cookieSessionId) && IsValidSessionId(cookieSessionId))
                 {
                     _logger.LogInformation("Using existing session ID from cookie: {SessionId}", cookieSessionId);
@@ -95,7 +106,7 @@ namespace CoffeeTracker.Api.IntegrationTests
             // Set cookie and header
             try
             {
-                context.Response.Cookies.Append("SessionId", newSessionId, new CookieOptions
+                context.Response.Cookies.Append("coffee-session", newSessionId, new CookieOptions
                 {
                     HttpOnly = true,
                     SameSite = SameSiteMode.Strict,
@@ -130,8 +141,8 @@ namespace CoffeeTracker.Api.IntegrationTests
 
         private static bool IsValidSessionId(string sessionId)
         {
-            // More flexible validation for testing - allow longer test session IDs
-            return !string.IsNullOrEmpty(sessionId) && sessionId.Length >= 20 && 
+            // More flexible validation for testing - allow test session IDs of various lengths
+            return !string.IsNullOrEmpty(sessionId) && sessionId.Length >= 8 && 
                    sessionId.All(c => char.IsAsciiLetterOrDigit(c) || c == '-');
         }
     }
