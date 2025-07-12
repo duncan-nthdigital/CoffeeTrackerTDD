@@ -7,6 +7,7 @@ var api = builder.AddProject<Projects.CoffeeTracker_Api>("coffeetracker-api")
 // Add Web project  
 var web = builder.AddProject<Projects.CoffeeTracker_Web>("coffeetracker-web")
     .WithReference(api)
-    .WithExternalHttpEndpoints();
+    .WithExternalHttpEndpoints()
+    .WaitFor(api);
 
 builder.Build().Run();

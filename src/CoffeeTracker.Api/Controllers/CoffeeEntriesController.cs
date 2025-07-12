@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using CoffeeTracker.Api.DTOs;
 using CoffeeTracker.Api.Services;
 using CoffeeTracker.Api.Exceptions;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace CoffeeTracker.Api.Controllers;
 
@@ -39,6 +40,14 @@ public class CoffeeEntriesController : ControllerBase
     /// <response code="201">Returns the newly created coffee entry</response>
     /// <response code="400">If the request is invalid or validation fails</response>
     [HttpPost]
+    [SwaggerOperation(
+        Summary = "Create a new coffee entry",
+        Description = "Creates a new coffee entry for the current anonymous session with automatic caffeine calculation",
+        OperationId = "CreateCoffeeEntry"
+    )]
+    [SwaggerResponse(201, "Coffee entry created successfully", typeof(CoffeeEntryResponse))]
+    [SwaggerResponse(400, "Invalid request data", typeof(ProblemDetails))]
+    [SwaggerResponse(422, "Business rule violation", typeof(ProblemDetails))]
     [ProducesResponseType(typeof(CoffeeEntryResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
@@ -98,6 +107,13 @@ public class CoffeeEntriesController : ControllerBase
     /// <response code="200">Returns the list of coffee entries for the specified date</response>
     /// <response code="400">If the date parameter is invalid</response>
     [HttpGet]
+    [SwaggerOperation(
+        Summary = "Get coffee entries",
+        Description = "Retrieves coffee entries for the current anonymous session, optionally filtered by date",
+        OperationId = "GetCoffeeEntries"
+    )]
+    [SwaggerResponse(200, "Coffee entries retrieved successfully", typeof(IEnumerable<CoffeeEntryResponse>))]
+    [SwaggerResponse(400, "Invalid date parameter", typeof(ProblemDetails))]
     [ProducesResponseType(typeof(IEnumerable<CoffeeEntryResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetCoffeeEntries([FromQuery] DateOnly? date = null)
