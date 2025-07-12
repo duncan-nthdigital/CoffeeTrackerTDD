@@ -257,10 +257,10 @@ public class CoffeeServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Service_Should_Cleanup_Old_Anonymous_Entries()
+    public async Task Service_Should_Not_Cleanup_Old_Entries_During_Operations()
     {
         // Arrange
-        var sessionId = "old-session";
+        var sessionId = "test-session";
         var oldTimestamp = DateTime.UtcNow.AddHours(-25); // Older than 24 hours
 
         // Directly insert old entry to simulate expired data
@@ -276,13 +276,14 @@ public class CoffeeServiceTests : IDisposable
         _context.CoffeeEntries.Add(oldEntry);
         await _context.SaveChangesAsync();
 
-        // Act - Creating a new entry should trigger cleanup
+        // Act - Creating a new entry should NOT trigger cleanup (cleanup is handled by background service)
         var request = new CreateCoffeeEntryRequest { CoffeeType = "Latte", Size = "Medium" };
         await _service.CreateCoffeeEntryAsync(request, sessionId);
 
-        // Assert - Old entry should be cleaned up
+        // Assert - Both old and new entries should exist (no cleanup during operations)
         var allEntries = await _context.CoffeeEntries.Where(e => e.SessionId == sessionId).ToListAsync();
-        allEntries.Should().HaveCount(1);
-        allEntries.First().CoffeeType.Should().Be("Latte");
+        allEntries.Should().HaveCount(2);
+        allEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        allEntries.Should().Contain(e => e.CoffeeType == "Latte");
     }
 }

@@ -17,7 +17,6 @@ public class CoffeeService : ICoffeeService
 
     private const int MaxDailyEntries = 10;
     private const int MaxDailyCaffeineMilligrams = 1000;
-    private const int DataRetentionHours = 24;
 
     /// <summary>
     /// Initializes a new instance of the CoffeeService class
@@ -39,9 +38,6 @@ public class CoffeeService : ICoffeeService
         }
 
         _logger.LogInformation("Creating coffee entry for session {SessionId}", sessionId);
-
-        // Clean up old entries first
-        await CleanupOldEntriesAsync(sessionId);
 
         // Validate timestamp
         var entryTimestamp = request.Timestamp ?? DateTime.UtcNow;
@@ -112,9 +108,6 @@ public class CoffeeService : ICoffeeService
         _logger.LogInformation("Retrieving coffee entries for session {SessionId}, date: {Date}", 
             sessionId, date);
 
-        // Clean up old entries first
-        await CleanupOldEntriesAsync(sessionId);
-
         var query = _context.CoffeeEntries
             .Where(e => e.SessionId == sessionId);
 
@@ -126,6 +119,7 @@ public class CoffeeService : ICoffeeService
         else
         {
             // Default to today if no date specified
+            // Use the date from the beginning of today to avoid timing issues
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             query = query.Where(e => DateOnly.FromDateTime(e.Timestamp) == today);
         }
@@ -151,9 +145,6 @@ public class CoffeeService : ICoffeeService
         _logger.LogInformation("Generating daily summary for session {SessionId}, date: {Date}", 
             sessionId, summaryDateOnly);
 
-        // Clean up old entries first
-        await CleanupOldEntriesAsync(sessionId);
-
         var entries = await _context.CoffeeEntries
             .Where(e => e.SessionId == sessionId && 
                        DateOnly.FromDateTime(e.Timestamp) == summaryDateOnly)
@@ -172,28 +163,6 @@ public class CoffeeService : ICoffeeService
             Entries = entries.Select(MapToResponse).ToList(),
             AverageCaffeinePerEntry = averageCaffeinePerEntry
         };
-    }
-
-    /// <summary>
-    /// Cleans up old anonymous entries (older than 24 hours)
-    /// </summary>
-    /// <param name="sessionId">The session ID to clean up entries for</param>
-    private async Task CleanupOldEntriesAsync(string sessionId)
-    {
-        var cutoffTime = DateTime.UtcNow.AddHours(-DataRetentionHours);
-
-        var oldEntries = await _context.CoffeeEntries
-            .Where(e => e.SessionId == sessionId && e.Timestamp < cutoffTime)
-            .ToListAsync();
-
-        if (oldEntries.Any())
-        {
-            _context.CoffeeEntries.RemoveRange(oldEntries);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Cleaned up {Count} old entries for session {SessionId}", 
-                oldEntries.Count, sessionId);
-        }
     }
 
     /// <summary>
@@ -265,4 +234,5 @@ public class CoffeeService : ICoffeeService
             FormattedTimestamp = entry.Timestamp.ToString("h:mm tt")
         };
     }
+
 }

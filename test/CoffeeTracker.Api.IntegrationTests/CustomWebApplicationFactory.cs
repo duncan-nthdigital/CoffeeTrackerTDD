@@ -63,7 +63,7 @@ namespace CoffeeTracker.Api.IntegrationTests
                 });
             });
             
-            // Minimal service override - only replace database configuration
+            // Minimal service override - only replace database configuration and background services
             builder.ConfigureServices(services =>
             {
                 // Remove the existing DbContext registration and replace with test database
@@ -74,6 +74,14 @@ namespace CoffeeTracker.Api.IntegrationTests
                 foreach (var descriptor in descriptors)
                 {
                     services.Remove(descriptor);
+                }
+                
+                // Remove SessionCleanupService to prevent interference with tests
+                var cleanupServiceDescriptor = services.FirstOrDefault(d => 
+                    d.ImplementationType == typeof(CoffeeTracker.Api.Services.Background.SessionCleanupService));
+                if (cleanupServiceDescriptor != null)
+                {
+                    services.Remove(cleanupServiceDescriptor);
                 }
 
                 // Re-add DbContext with test database path - keeping all other logic the same
