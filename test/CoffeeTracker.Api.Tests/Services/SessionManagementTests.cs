@@ -34,12 +34,18 @@ public class SessionManagementTests
             
         _dbContext = new CoffeeTrackerDbContext(options);
     }
+
+    private CoffeeEntryService CreateCoffeeEntryService()
+    {
+        var coffeeService = new CoffeeService(_dbContext, new Mock<ILogger<CoffeeService>>().Object);
+        return new CoffeeEntryService(coffeeService, _loggerMock.Object, _httpContextAccessorMock.Object);
+    }
     
     [Fact]
     public async Task CreateCoffeeEntryAsync_AddsSessionIdToEntry()
     {
         // Arrange
-        var service = new CoffeeEntryService(_dbContext, _loggerMock.Object, _httpContextAccessorMock.Object);
+        var service = CreateCoffeeEntryService();
         var request = new CreateCoffeeEntryRequest
         {
             CoffeeType = "Latte",
@@ -60,7 +66,7 @@ public class SessionManagementTests
     public async Task GetCoffeeEntriesAsync_OnlyReturnsEntriesForCurrentSession()
     {
         // Arrange
-        var service = new CoffeeEntryService(_dbContext, _loggerMock.Object, _httpContextAccessorMock.Object);
+        var service = CreateCoffeeEntryService();
         
         // Add entries with different session IDs
         await _dbContext.CoffeeEntries.AddRangeAsync(new[]
@@ -85,7 +91,7 @@ public class SessionManagementTests
         // Arrange
         _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(new DefaultHttpContext());
         
-        var service = new CoffeeEntryService(_dbContext, _loggerMock.Object, _httpContextAccessorMock.Object);
+        var service = CreateCoffeeEntryService();
         var request = new CreateCoffeeEntryRequest
         {
             CoffeeType = "Latte",
@@ -104,7 +110,7 @@ public class SessionManagementTests
         // Arrange
         _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(new DefaultHttpContext());
         
-        var service = new CoffeeEntryService(_dbContext, _loggerMock.Object, _httpContextAccessorMock.Object);
+        var service = CreateCoffeeEntryService();
         
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () => 

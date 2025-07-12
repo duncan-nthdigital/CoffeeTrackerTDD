@@ -30,6 +30,12 @@ public class CoffeeEntryServiceTests
         _mockHttpContextAccessor.Setup(h => h.HttpContext).Returns(httpContext);
     }
 
+    private CoffeeEntryService CreateCoffeeEntryService(CoffeeTrackerDbContext context)
+    {
+        var coffeeService = new CoffeeService(context, new Mock<ILogger<CoffeeService>>().Object);
+        return new CoffeeEntryService(coffeeService, _mockLogger.Object, _mockHttpContextAccessor.Object);
+    }
+
     [Fact]
     public async Task CreateCoffeeEntryAsync_Should_Create_And_Return_CoffeeEntry()
     {
@@ -45,7 +51,7 @@ public class CoffeeEntryServiceTests
         };
 
         using var context = new CoffeeTrackerDbContext(options);
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         // Act
         var result = await service.CreateCoffeeEntryAsync(request);
@@ -83,7 +89,7 @@ public class CoffeeEntryServiceTests
         };
 
         using var context = new CoffeeTrackerDbContext(options);
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         // Act
         var result = await service.CreateCoffeeEntryAsync(request);
@@ -107,7 +113,7 @@ public class CoffeeEntryServiceTests
             .Options;
 
         using var context = new CoffeeTrackerDbContext(options);
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         // Act
         Func<Task> act = async () => await service.CreateCoffeeEntryAsync(null!);
@@ -147,7 +153,7 @@ public class CoffeeEntryServiceTests
         context.CoffeeEntries.Add(yesterdayEntry);
         await context.SaveChangesAsync();
 
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         // Act
         var result = await service.GetCoffeeEntriesAsync();
@@ -183,7 +189,7 @@ public class CoffeeEntryServiceTests
         context.CoffeeEntries.AddRange(entries);
         await context.SaveChangesAsync();
 
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         // Act
         var result = await service.GetCoffeeEntriesAsync(targetDateOnly);
@@ -204,7 +210,7 @@ public class CoffeeEntryServiceTests
             .Options;
 
         using var context = new CoffeeTrackerDbContext(options);
-        var service = new CoffeeEntryService(context, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        var service = CreateCoffeeEntryService(context);
 
         var futureDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
 
