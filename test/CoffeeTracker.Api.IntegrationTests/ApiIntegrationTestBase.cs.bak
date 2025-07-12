@@ -1,0 +1,102 @@
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using CoffeeTracker.Api.Data;
+using CoffeeTracker.Api.Models;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace CoffeeTracker.Api.IntegrationTests;
+
+/// <summary>
+/// Base class for API integration tests with common setup
+/// </summary>
+public class ApiIntegrationTestBase : IClassFixture<CustomWebApplicationFactory>
+{
+    protected readonly CustomWebApplicationFactory Factory;
+    protected readonly HttpClient Client;
+    protected readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    protected const string CookieSessionName = "coffee-session";
+
+    public ApiIntegrationTestBase(CustomWebApplicationFactory factory)
+    {
+        // Use the custom factory directly
+        Factory = factory;
+
+        // No need to reconfigure the factory here as we now use CustomWebApplicationFactory
+                    services.Remove(descriptor);
+                }
+
+                // Create a unique in-memory database for each test
+                var connection = new SqliteConnection("DataSource=:memory:");
+                connection.Open();
+
+                services.AddDbContext<CoffeeTrackerDbContext>(options =>
+                {
+                    options.UseSqlite(connection);
+                });
+
+                // Build the service provider to ensure the database gets created
+                using var serviceProvider = services.BuildServiceProvider();
+                using var scope = serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<CoffeeTrackerDbContext>();
+                dbContext.Database.EnsureCreated();
+            });
+        });
+
+        Client = Factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+    }
+
+    /// <summary>
+    /// Creates a test coffee entry request
+    /// </summary>
+    protected static StringContent CreateJsonContent(object content)
+    {
+        return new StringContent(
+            JsonSerializer.Serialize(content),
+            Encoding.UTF8,
+            "application/json");
+    }
+    
+    /// <summary>
+    /// Extracts the session ID from the HTTP response cookies
+    /// </summary>
+    protected string? ExtractSessionIdFromResponse(HttpResponseMessage response)
+    {
+        if (!response.Headers.TryGetValues("Set-Cookie", out var cookies))
+        {
+            return null;
+        }
+
+        foreach (var cookie in cookies)
+        {
+            if (cookie.StartsWith($"{CookieSessionName}="))
+            {
+                var sessionId = cookie.Split(';')[0].Substring(CookieSessionName.Length + 1);
+                return sessionId;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Creates a client with a specific session ID
+    /// </summary>
+    protected HttpClient CreateClientWithSession(string sessionId)
+    {
+        var client = Factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Cookie", $"{CookieSessionName}={sessionId}");
+        return client;
+    }
+}

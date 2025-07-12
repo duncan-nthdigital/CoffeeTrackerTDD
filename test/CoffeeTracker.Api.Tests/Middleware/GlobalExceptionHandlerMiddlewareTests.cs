@@ -41,11 +41,11 @@ public class GlobalExceptionHandlerMiddlewareTests
     public async Task InvokeAsync_WithValidationException_Returns400BadRequest()
     {
         // Arrange
-        var middleware = new GlobalExceptionHandlerMiddleware(_loggerMock.Object);
-        _next = (httpContext) => Task.FromException(new ValidationException("Validation failed"));
+        RequestDelegate next = (httpContext) => Task.FromException(new ValidationException("Validation failed"));
+        var middleware = new GlobalExceptionHandlerMiddleware(next, _loggerMock.Object);
         
         // Act
-        await middleware.InvokeAsync(_httpContext, _next);
+        await middleware.InvokeAsync(_httpContext);
         
         // Assert
         _responseBody.Position = 0;
@@ -67,12 +67,12 @@ public class GlobalExceptionHandlerMiddlewareTests
     public async Task InvokeAsync_WithBusinessRuleViolationException_Returns422UnprocessableEntity()
     {
         // Arrange
-        var middleware = new GlobalExceptionHandlerMiddleware(_loggerMock.Object);
-        _next = (httpContext) => Task.FromException(
+        RequestDelegate next = (httpContext) => Task.FromException(
             new BusinessRuleViolationException("DailyEntryLimit", "Daily limit exceeded"));
+        var middleware = new GlobalExceptionHandlerMiddleware(next, _loggerMock.Object);
         
         // Act
-        await middleware.InvokeAsync(_httpContext, _next);
+        await middleware.InvokeAsync(_httpContext);
         
         // Assert
         _responseBody.Position = 0;
@@ -92,12 +92,12 @@ public class GlobalExceptionHandlerMiddlewareTests
     public async Task InvokeAsync_WithSessionNotFoundException_Returns404NotFound()
     {
         // Arrange
-        var middleware = new GlobalExceptionHandlerMiddleware(_loggerMock.Object);
-        _next = (httpContext) => Task.FromException(
+        RequestDelegate next = (httpContext) => Task.FromException(
             new SessionNotFoundException("test-session"));
+        var middleware = new GlobalExceptionHandlerMiddleware(next, _loggerMock.Object);
         
         // Act
-        await middleware.InvokeAsync(_httpContext, _next);
+        await middleware.InvokeAsync(_httpContext);
         
         // Assert
         _responseBody.Position = 0;
@@ -117,12 +117,12 @@ public class GlobalExceptionHandlerMiddlewareTests
     public async Task InvokeAsync_WithGenericException_Returns500InternalServerError()
     {
         // Arrange
-        var middleware = new GlobalExceptionHandlerMiddleware(_loggerMock.Object);
-        _next = (httpContext) => Task.FromException(
+        RequestDelegate next = (httpContext) => Task.FromException(
             new InvalidOperationException("Something went wrong"));
+        var middleware = new GlobalExceptionHandlerMiddleware(next, _loggerMock.Object);
         
         // Act
-        await middleware.InvokeAsync(_httpContext, _next);
+        await middleware.InvokeAsync(_httpContext);
         
         // Assert
         _responseBody.Position = 0;

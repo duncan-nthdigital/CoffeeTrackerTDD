@@ -1,5 +1,6 @@
 using CoffeeTracker.Api.Services;
 using CoffeeTracker.Api.Services.Background;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ public class SessionCleanupServiceTests
     private readonly Mock<IServiceScope> _serviceScopeMock;
     private readonly Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
     private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IWebHostEnvironment> _environmentMock;
 
     public SessionCleanupServiceTests()
     {
@@ -24,6 +26,7 @@ public class SessionCleanupServiceTests
         _serviceScopeMock = new Mock<IServiceScope>();
         _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
         _configurationMock = new Mock<IConfiguration>();
+        _environmentMock = new Mock<IWebHostEnvironment>();
         
         // Setup configuration sections and settings
         var sessionMgtSection = new Mock<IConfigurationSection>();
@@ -63,7 +66,7 @@ public class SessionCleanupServiceTests
             .ReturnsAsync(5);
             
         var cancellationTokenSource = new CancellationTokenSource();
-        var service = new SessionCleanupService(_serviceProviderMock.Object, _loggerMock.Object, _configurationMock.Object);
+        var service = new SessionCleanupService(_serviceProviderMock.Object, _loggerMock.Object, _configurationMock.Object, _environmentMock.Object);
         
         // Act - Start the service and then cancel after a short time
         var serviceTask = Task.Run(async () => 

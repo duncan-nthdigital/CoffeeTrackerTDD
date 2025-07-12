@@ -31,6 +31,8 @@ public class AnonymousSessionMiddleware
         if (sessionService == null)
             throw new ArgumentNullException(nameof(sessionService));
 
+        _logger.LogDebug("Anonymous session middleware processing request");
+
         try
         {
             // Get or create a session ID for this request
@@ -39,7 +41,7 @@ public class AnonymousSessionMiddleware
             // Store the session ID in the HTTP context items for use in controllers/services
             context.Items["SessionId"] = sessionId;
             
-            _logger.LogDebug("Session ID set in HTTP context: {SessionId}", sessionId);
+            _logger.LogDebug("Session ID {SessionId} set in HTTP context items", sessionId);
         }
         catch (Exception ex)
         {

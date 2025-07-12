@@ -54,10 +54,11 @@ public class SessionService : ISessionService
             HttpOnly = true,
             Expires = DateTimeOffset.UtcNow.AddHours(24), // 24-hour expiration
             SameSite = SameSiteMode.Lax,
-            Secure = context.Request.IsHttps
+            Secure = context.Request.IsHttps // Use secure cookies for HTTPS requests
         };
         
         context.Response.Cookies.Append(SessionCookieName, newSessionId, cookieOptions);
+        
         _logger.LogInformation("Created new session ID: {SessionId}", newSessionId);
         
         return newSessionId;

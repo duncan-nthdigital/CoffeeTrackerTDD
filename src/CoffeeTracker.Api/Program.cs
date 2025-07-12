@@ -11,11 +11,15 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.Extensions.Options;
+using CoffeeTracker.Api.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
-builder.AddServiceDefaults();
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.AddServiceDefaults();
+}
 
 // Add services to the container.
 // Ensure data directory exists and create absolute path for SQLite database
@@ -94,8 +98,47 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// Add controllers
-builder.Services.AddControllers();
+// Add controllers with Problem Details support
+builder.Services.AddProblemDetails(options =>
+{
+    // Configure problem details to handle various exceptions
+    options.CustomizeProblemDetails = context =>
+    {
+        // Ensure the content type is always set correctly
+        context.HttpContext.Response.ContentType = "application/problem+json";
+        
+        // Add correlation ID
+        if (context.ProblemDetails.Extensions == null)
+        {
+            context.ProblemDetails.Extensions = new Dictionary<string, object?>();
+        }
+        context.ProblemDetails.Extensions["correlationId"] = context.HttpContext.TraceIdentifier;
+    };
+});
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<GlobalExceptionFilter>();
+})
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var problemDetails = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(context.ModelState)
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Invalid input data provided.",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = "See the errors property for details.",
+                Instance = context.HttpContext.Request.Path
+            };
+
+            var result = new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problemDetails);
+            result.ContentTypes.Add("application/problem+json");
+            result.ContentTypes.Add("application/problem+json");
+            return result;
+        };
+    });
 
 // TODO: Add FluentValidation
 // builder.Services.AddFluentValidationAutoValidation();
@@ -107,7 +150,9 @@ builder.Services.AddControllers();
 // Configure session management
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.CheckConsentNeeded = context => true;
+    // Allow essential cookies (like session cookies) without consent
+    // For anonymous tracking, we consider session cookies essential for app functionality
+    options.CheckConsentNeeded = context => false; // Allow essential cookies
     options.MinimumSameSitePolicy = SameSiteMode.Lax;
     options.Secure = CookieSecurePolicy.SameAsRequest;
 });
@@ -115,6 +160,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 // Register application services
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICoffeeEntryService, CoffeeEntryService>();
+builder.Services.AddScoped<ICoffeeService, CoffeeService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<ICoffeeEntryRepository, CoffeeEntryRepository>();
 builder.Services.AddScoped<ICoffeeValidationService, CoffeeValidationService>();
@@ -143,6 +189,35 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Configure problem details for built-in error handling (404, JSON parsing, etc.)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler();
+}
+
+// Configure status code pages to return problem details for 404, etc.
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+    var statusCode = response.StatusCode;
+    
+    if (statusCode == 404)
+    {
+        response.ContentType = "application/problem+json";
+        
+        var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Status = statusCode,
+            Title = "Not Found",
+            Detail = $"The requested resource was not found.",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+            Instance = context.HttpContext.Request.Path
+        };
+        
+        await response.WriteAsJsonAsync(problemDetails);
+    }
+});
 
 app.UseCors("AllowWebApp");
 
@@ -226,3 +301,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Make Program class accessible for testing
+public partial class Program { }

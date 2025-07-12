@@ -16,10 +16,12 @@ public class SessionCleanupService : BackgroundService
     /// <param name="serviceProvider">Service provider for creating scoped services</param>
     /// <param name="logger">Logger instance</param>
     /// <param name="configuration">Configuration instance</param>
+    /// <param name="environment">Hosting environment</param>
     public SessionCleanupService(
         IServiceProvider serviceProvider,
         ILogger<SessionCleanupService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

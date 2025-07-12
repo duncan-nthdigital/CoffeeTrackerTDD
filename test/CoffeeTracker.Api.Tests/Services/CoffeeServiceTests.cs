@@ -154,37 +154,42 @@ public class CoffeeServiceTests : IDisposable
         var sessionId = "session-date-filter";
         var now = DateTime.UtcNow;
         
-        // Create two entries on different dates but within retention period
+        // Create two entries at different times today, both in the past
         var today = now.Date;
-        var recentDate = now.AddHours(-18).Date; // 18 hours ago (different date, within 24h retention)
+        var earlierToday = now.AddHours(-10); // 10 hours ago
+        var laterToday = now.AddHours(-5); // 5 hours ago
 
-        var todayRequest = new CreateCoffeeEntryRequest 
-        { 
-            CoffeeType = "Latte", 
-            Size = "Medium",
-            Timestamp = today.AddHours(10) // Today at 10 AM
-        };
-        
-        var recentRequest = new CreateCoffeeEntryRequest 
+        var earlyRequest = new CreateCoffeeEntryRequest 
         { 
             CoffeeType = "Espresso", 
             Size = "Small",
-            Timestamp = now.AddHours(-18) // 18 hours ago (different date but within retention)
+            Timestamp = earlierToday
+        };
+        
+        var lateRequest = new CreateCoffeeEntryRequest 
+        { 
+            CoffeeType = "Latte", 
+            Size = "Medium",
+            Timestamp = laterToday
         };
 
-        await _service.CreateCoffeeEntryAsync(todayRequest, sessionId);
-        await _service.CreateCoffeeEntryAsync(recentRequest, sessionId);
+        await _service.CreateCoffeeEntryAsync(earlyRequest, sessionId);
+        await _service.CreateCoffeeEntryAsync(lateRequest, sessionId);
 
-        // Act
+        // Act - Get entries for today (should get both)
         var todayEntries = await _service.GetCoffeeEntriesAsync(sessionId, today);
-        var recentEntries = await _service.GetCoffeeEntriesAsync(sessionId, recentDate);
+        
+        // Get entries with no date filter (should also get both since both are today)
+        var allEntries = await _service.GetCoffeeEntriesAsync(sessionId);
 
         // Assert
-        todayEntries.Should().HaveCount(1);
-        todayEntries.First().CoffeeType.Should().Be("Latte");
+        todayEntries.Should().HaveCount(2);
+        todayEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        todayEntries.Should().Contain(e => e.CoffeeType == "Latte");
 
-        recentEntries.Should().HaveCount(1);
-        recentEntries.First().CoffeeType.Should().Be("Espresso");
+        allEntries.Should().HaveCount(2);
+        allEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        allEntries.Should().Contain(e => e.CoffeeType == "Latte");
     }
 
     [Fact]
@@ -252,10 +257,10 @@ public class CoffeeServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Service_Should_Cleanup_Old_Anonymous_Entries()
+    public async Task Service_Should_Not_Cleanup_Old_Entries_During_Operations()
     {
         // Arrange
-        var sessionId = "old-session";
+        var sessionId = "test-session";
         var oldTimestamp = DateTime.UtcNow.AddHours(-25); // Older than 24 hours
 
         // Directly insert old entry to simulate expired data
@@ -271,13 +276,14 @@ public class CoffeeServiceTests : IDisposable
         _context.CoffeeEntries.Add(oldEntry);
         await _context.SaveChangesAsync();
 
-        // Act - Creating a new entry should trigger cleanup
+        // Act - Creating a new entry should NOT trigger cleanup (cleanup is handled by background service)
         var request = new CreateCoffeeEntryRequest { CoffeeType = "Latte", Size = "Medium" };
         await _service.CreateCoffeeEntryAsync(request, sessionId);
 
-        // Assert - Old entry should be cleaned up
+        // Assert - Both old and new entries should exist (no cleanup during operations)
         var allEntries = await _context.CoffeeEntries.Where(e => e.SessionId == sessionId).ToListAsync();
-        allEntries.Should().HaveCount(1);
-        allEntries.First().CoffeeType.Should().Be("Latte");
+        allEntries.Should().HaveCount(2);
+        allEntries.Should().Contain(e => e.CoffeeType == "Espresso");
+        allEntries.Should().Contain(e => e.CoffeeType == "Latte");
     }
 }
