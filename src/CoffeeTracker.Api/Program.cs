@@ -79,6 +79,34 @@ else
 }
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Coffee Tracker API",
+        Description = "An ASP.NET Core Web API for tracking coffee consumption",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Coffee Tracker Team",
+            Email = "support@coffeetracker.com"
+        }
+    });
+    
+    // Include XML comments
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
+    
+    // Configure examples and schemas
+    options.EnableAnnotations();
+    options.UseInlineDefinitionsForEnums();
+});
+
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -175,16 +203,28 @@ app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(c =>
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
-        c.SwaggerEndpoint("/openapi/v1.json", "Coffee Tracker API v1");
-        c.RoutePrefix = "swagger";
-        c.DocumentTitle = "Coffee Tracker API Documentation";
-        c.DefaultModelsExpandDepth(2);
-        c.DefaultModelExpandDepth(2);
-        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
-        c.EnableFilter();
-        c.EnableDeepLinking();
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Coffee Tracker API v1");
+        options.RoutePrefix = "swagger";
+        options.DocumentTitle = "Coffee Tracker API v1 Documentation";
+        options.DefaultModelsExpandDepth(2);
+        options.DefaultModelExpandDepth(2);
+        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        options.EnableFilter();
+        options.EnableDeepLinking();
+        options.DisplayRequestDuration();
+        options.HeadContent = @"
+            <style>
+                .topbar-wrapper img[alt='Swagger UI'], .topbar-wrapper span { 
+                    visibility: visible; 
+                }
+                .topbar-wrapper .link:after { 
+                    content: ' v1'; 
+                    font-weight: bold; 
+                }
+            </style>";
     });
 }
 
