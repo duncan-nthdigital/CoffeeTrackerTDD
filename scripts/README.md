@@ -37,6 +37,12 @@ This directory contains scripts to automatically create GitHub issues for the Co
 - **Issues Created**: 5 issues (#013-#017)
 - **Focus**: Coffee shop data management and locator functionality with Swagger documentation
 
+#### Epic 4 - Blazor UI Components
+- **PowerShell**: `create-epic-4-github-issues.ps1`
+- **Bash**: `create-epic-4-github-issues.sh`
+- **Issues Created**: 6 issues (#018-#023)
+- **Focus**: Blazor UI components for coffee logging interface with responsive design
+
 ### Combined Script
 
 #### All Epics
@@ -66,6 +72,9 @@ cd CoffeeTrackerTDD
 
 # Create Epic 3 issues only
 .\scripts\create-epic-3-github-issues.ps1
+
+# Create Epic 4 issues only
+.\scripts\create-epic-4-github-issues.ps1
 
 # Create all issues at once
 .\scripts\create-all-github-issues.ps1
@@ -98,6 +107,9 @@ chmod +x scripts/*.sh
 # Create Epic 3 issues only
 ./scripts/create-epic-3-github-issues.sh
 
+# Create Epic 4 issues only
+./scripts/create-epic-4-github-issues.sh
+
 # Create a single specific issue
 ./scripts/create-single-issue.sh 12  # Create issue #012 (Swagger/OpenAPI Documentation)
 ```
@@ -129,12 +141,20 @@ Each script creates issues with the following structure:
 16. **Issue #016**: Add Geographic Location Support
 17. **Issue #017**: Create Coffee Shop Integration Tests
 
+### Epic 4 Issues
+18. **Issue #018**: Create Coffee Entry Form Component
+19. **Issue #019**: Create Coffee Summary Dashboard Component
+20. **Issue #020**: Create Coffee Shop Selector Component
+21. **Issue #021**: Create Coffee Tracker Main Page
+22. **Issue #022**: Enhance UX with Validation and Polish
+23. **Issue #023**: Create Blazor Component Integration Tests
+
 ## Labels and Organization
 
 Issues are automatically created with:
-- **Epic labels**: `epic-1`, `epic-2`, `epic-3`
+- **Epic labels**: `epic-1`, `epic-2`, `epic-3`, `epic-4`
 - **Priority labels**: `high-priority`, `medium-priority`, `low-priority`
-- **Component labels**: `domain-model`, `api-controller`, `testing`, `swagger`, `documentation`, etc.
+- **Component labels**: `domain-model`, `api-controller`, `testing`, `swagger`, `documentation`, `blazor-component`, `ui-form`, `ui-dashboard`, etc.
 - **Milestone**: "Phase 1 - Anonymous User MVP" or "Phase 2 - Enhanced Features"
 
 ## Troubleshooting
@@ -180,12 +200,13 @@ After running the scripts, verify the issues were created:
    gh issue list --label epic-1
    gh issue list --label epic-2
    gh issue list --label epic-3
+   gh issue list --label epic-4
    ```
 
 2. **Via GitHub Web Interface**:
    - Navigate to your repository on GitHub.com
    - Click on the "Issues" tab
-   - Filter by labels: `epic-1`, `epic-2`, `epic-3`
+   - Filter by labels: `epic-1`, `epic-2`, `epic-3`, `epic-4`
 
 ## File Locations
 
@@ -195,6 +216,7 @@ architecture/github-issues/
 ├── Epic-1-Issues-Index.md          # Epic 1 overview
 ├── Epic-2-Issues-Index.md          # Epic 2 overview
 ├── Epic-3-Issues-Index.md          # Epic 3 overview
+├── Epic-4-Issues-Index.md          # Epic 4 overview
 ├── Issue-001-Coffee-Entry-Domain-Model.md
 ├── Issue-002-Coffee-Type-Size-Enums.md
 ├── Issue-003-Update-DbContext-Coffee-Models.md
@@ -211,7 +233,13 @@ architecture/github-issues/
 ├── Issue-014-Coffee-Shop-Service-Layer.md
 ├── Issue-015-Coffee-Shop-Seed-Data.md
 ├── Issue-016-Geographic-Location-Support.md
-└── Issue-017-Coffee-Shop-Integration-Tests.md
+├── Issue-017-Coffee-Shop-Integration-Tests.md
+├── Issue-018-Coffee-Entry-Form-Component.md
+├── Issue-019-Coffee-Summary-Dashboard-Component.md
+├── Issue-020-Coffee-Shop-Selector-Component.md
+├── Issue-021-Coffee-Tracker-Main-Page.md
+├── Issue-022-Enhance-UX-Validation-Polish.md
+└── Issue-023-Blazor-Component-Integration-Tests.md
 ```
 
 ## Customization
